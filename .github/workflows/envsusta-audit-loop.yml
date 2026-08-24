@@ -1,9 +1,6 @@
-name: EnvSusta temporary quality loop
+name: EnvSusta continuous quality loop
 
 on:
-  schedule:
-    - cron: "*/15 * * * *"
-    - cron: "59 15 24 8 *"
   workflow_dispatch:
 
 permissions:
@@ -11,85 +8,88 @@ permissions:
 
 concurrency:
   group: envsusta-temporary-audit-loop
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   audit-until-cutoff:
     runs-on: ubuntu-latest
+    timeout-minutes: 145
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Stop at 23.59 WIB
-        id: cutoff
-        shell: bash
-        run: |
-          cutoff_epoch=$(date --date='2026-08-24T23:59:00+08:00' +%s)
-          now_epoch=$(date +%s)
-          if [ "$now_epoch" -ge "$cutoff_epoch" ]; then
-            echo "reached=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "reached=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Retire temporary workflow
-        if: steps.cutoff.outputs.reached == 'true'
-        shell: bash
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git rm .github/workflows/envsusta-audit-loop.yml
-          git commit -m "chore: retire temporary EnvSusta audit loop"
-          git push
-
       - name: Setup pnpm
-        if: steps.cutoff.outputs.reached != 'true'
         uses: pnpm/action-setup@v4
         with:
           run_install: false
 
       - name: Setup Node.js
-        if: steps.cutoff.outputs.reached != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
 
       - name: Install dependencies
-        if: steps.cutoff.outputs.reached != 'true'
         run: pnpm install --frozen-lockfile
 
-      - name: Apply safe formatting repair
-        if: steps.cutoff.outputs.reached != 'true'
-        run: pnpm exec prettier --write client/index.html client/src/App.tsx client/src/index.css client/src/pages/Home.tsx client/src/lib/calculations.ts client/src/lib/assets.ts vite.config.ts
-
-      - name: Commit safe formatting repair
-        if: steps.cutoff.outputs.reached != 'true'
+      - name: Run audit, safe repair, build, and public verification until cutoff
         shell: bash
         run: |
-          git add client/index.html client/src/App.tsx client/src/index.css client/src/pages/Home.tsx client/src/lib/calculations.ts client/src/lib/assets.ts vite.config.ts
-          if ! git diff --cached --quiet; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "chore: apply EnvSusta formatting repair"
-            git push
-          fi
+          set -euo pipefail
+          cutoff_epoch=$(date --date='2026-08-24T23:59:00+08:00' +%s)
+          iteration=1
 
-      - name: Build and verify source
-        if: steps.cutoff.outputs.reached != 'true'
-        run: |
-          pnpm format:check
-          pnpm check
-          VITE_DEPLOY_TARGET=github pnpm build
+          while true; do
+            now_epoch=$(date +%s)
+            if [ "$now_epoch" -ge "$cutoff_epoch" ]; then
+              echo "Cutoff tercapai. Mengakhiri quality loop."
+              break
+            fi
 
-      - name: Audit public deployment
-        if: steps.cutoff.outputs.reached != 'true'
+            echo "=== Iterasi audit ${iteration} pada $(date --iso-8601=seconds) ==="
+            git pull --ff-only origin main
+
+            pnpm exec prettier --write client/index.html client/src/App.tsx client/src/index.css client/src/pages/Home.tsx client/src/lib/calculations.ts client/src/lib/assets.ts vite.config.ts
+            git add client/index.html client/src/App.tsx client/src/index.css client/src/pages/Home.tsx client/src/lib/calculations.ts client/src/lib/assets.ts vite.config.ts
+            if ! git diff --cached --quiet; then
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git commit -m "chore: apply EnvSusta formatting repair"
+              git push
+            fi
+
+            pnpm format:check
+            pnpm check
+            VITE_DEPLOY_TARGET=github pnpm build
+
+            audit_url="https://claudesharing2-creator.github.io/ENVSUSTA/?audit=$(date +%s)"
+            page=$(curl --fail --location --retry 3 --retry-delay 5 --silent --show-error "$audit_url")
+            grep -q "EnvSusta" <<< "$page"
+            grep -q "/ENVSUSTA/assets/" <<< "$page"
+            echo "Audit publik lulus."
+
+            iteration=$((iteration + 1))
+            now_epoch=$(date +%s)
+            remaining=$((cutoff_epoch - now_epoch))
+            if [ "$remaining" -le 0 ]; then
+              break
+            fi
+            sleep_seconds=900
+            if [ "$remaining" -lt "$sleep_seconds" ]; then
+              sleep_seconds="$remaining"
+            fi
+            echo "Menunggu ${sleep_seconds} detik hingga iterasi berikutnya."
+            sleep "$sleep_seconds"
+          done
+
+      - name: Retire temporary workflow at cutoff
         shell: bash
         run: |
-          audit_url="https://claudesharing2-creator.github.io/ENVSUSTA/?audit=$(date +%s)"
-          page=$(curl --fail --location --retry 3 --retry-delay 5 --silent --show-error "$audit_url")
-          grep -q "EnvSusta" <<< "$page"
-          grep -q "/ENVSUSTA/assets/" <<< "$page"
-          echo "Audit lulus: source, build, dan shell publik EnvSusta tersedia."
+          git pull --ff-only origin main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/envsusta-audit-loop.yml
+          git commit -m "chore: retire temporary EnvSusta audit loop"
+          git push
