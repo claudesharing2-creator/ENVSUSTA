@@ -40,17 +40,16 @@ import {
 } from "@/lib/calculations";
 import { envSustaAssets } from "@/lib/assets";
 import {
-  sustainabilityActionTracks,
+  actionPlaybooks,
   sustainabilityDomains,
   type DomainId,
-  type SustainabilityDomain,
 } from "@/lib/sustainability";
 
 type ViewId = "overview" | "calculator" | "learn" | "plan" | "library";
 type CalcInputs = StarterFootprintInputs;
 type LocalWorkspace = {
   inputs: CalcInputs;
-  tasks: boolean[];
+  playbookProgress: Record<DomainId, boolean[]>;
   activeDomains: DomainId[];
   updatedAt?: string;
 };
@@ -85,22 +84,46 @@ const navItems: {
   { id: "library", label: "Navigator", icon: NotebookTabs },
 ];
 
-function blankTasks() {
-  return sustainabilityActionTracks.map((_, index) => index === 0);
+function blankPlaybookProgress(): Record<DomainId, boolean[]> {
+  return actionPlaybooks.reduce(
+    (progress, playbook) => {
+      progress[playbook.domainId] = playbook.steps.map(() => false);
+      return progress;
+    },
+    {} as Record<DomainId, boolean[]>
+  );
 }
 
-function normalizeTasks(tasks?: boolean[]) {
-  const fallback = blankTasks();
-  return fallback.map((item, index) => tasks?.[index] ?? item);
+function normalizePlaybookProgress(
+  progress?: Partial<Record<DomainId, boolean[]>>
+): Record<DomainId, boolean[]> {
+  const fallback = blankPlaybookProgress();
+  return actionPlaybooks.reduce(
+    (normalized, playbook) => {
+      normalized[playbook.domainId] = fallback[playbook.domainId].map(
+        (item, index) => progress?.[playbook.domainId]?.[index] ?? item
+      );
+      return normalized;
+    },
+    {} as Record<DomainId, boolean[]>
+  );
 }
 
 function readLocalWorkspace(): LocalWorkspace {
   if (typeof window === "undefined")
-    return { inputs: initialInputs, tasks: blankTasks(), activeDomains: [] };
+    return {
+      inputs: initialInputs,
+      playbookProgress: blankPlaybookProgress(),
+      activeDomains: [],
+    };
   try {
     const raw = window.localStorage.getItem("envsusta-local-workspace");
     if (!raw)
-      return { inputs: initialInputs, tasks: blankTasks(), activeDomains: [] };
+      return {
+        inputs: initialInputs,
+        playbookProgress: blankPlaybookProgress(),
+        activeDomains: [],
+      };
     const parsed = JSON.parse(raw) as Partial<LocalWorkspace>;
     const activeDomains = Array.isArray(parsed.activeDomains)
       ? parsed.activeDomains.filter((id): id is DomainId =>
@@ -109,13 +132,17 @@ function readLocalWorkspace(): LocalWorkspace {
       : [];
     return {
       inputs: { ...initialInputs, ...(parsed.inputs ?? {}) },
-      tasks: normalizeTasks(parsed.tasks),
+      playbookProgress: normalizePlaybookProgress(parsed.playbookProgress),
       activeDomains,
       updatedAt: parsed.updatedAt,
     };
   } catch {
     window.localStorage.removeItem("envsusta-local-workspace");
-    return { inputs: initialInputs, tasks: blankTasks(), activeDomains: [] };
+    return {
+      inputs: initialInputs,
+      playbookProgress: blankPlaybookProgress(),
+      activeDomains: [],
+    };
   }
 }
 
@@ -132,14 +159,14 @@ function formatSavedAt(updatedAt?: string) {
 
 function downloadLocalData(
   inputs: CalcInputs,
-  tasks: boolean[],
+  playbookProgress: Record<DomainId, boolean[]>,
   activeDomains: DomainId[]
 ) {
   const payload = {
     app: "EnvSusta",
     exportedAt: new Date().toISOString(),
     calculatorInputs: inputs,
-    actionPlan: tasks,
+    actionPlan: playbookProgress,
     activeDomains,
     note: "Draf lokal untuk orientasi dan aksi awal. Faktor perhitungan pada versi demo bersifat ilustratif; pilih faktor resmi, batas organisasi, dan metodologi yang sesuai sebelum menggunakan hasil untuk pelaporan formal.",
   };
@@ -181,7 +208,9 @@ export default function Home() {
   const [savedAt, setSavedAt] = useState(
     formatSavedAt(workspaceSeed.updatedAt)
   );
-  const [tasks, setTasks] = useState(() => normalizeTasks(workspaceSeed.tasks));
+  const [playbookProgress, setPlaybookProgress] = useState<
+    Record<DomainId, boolean[]>
+  >(() => normalizePlaybookProgress(workspaceSeed.playbookProgress));
   const [activeDomains, setActiveDomains] = useState<DomainId[]>(
     workspaceSeed.activeDomains
   );
@@ -195,12 +224,12 @@ export default function Home() {
       const updatedAt = new Date().toISOString();
       window.localStorage.setItem(
         "envsusta-local-workspace",
-        JSON.stringify({ inputs, tasks, activeDomains, updatedAt })
+        JSON.stringify({ inputs, playbookProgress, activeDomains, updatedAt })
       );
       setSavedAt(formatSavedAt(updatedAt));
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [inputs, tasks, activeDomains]);
+  }, [inputs, playbookProgress, activeDomains]);
 
   const calculation = useMemo(
     () => calculateStarterFootprint(inputs),
@@ -209,8 +238,20 @@ export default function Home() {
   const selectedDomain =
     sustainabilityDomains.find(domain => domain.id === selectedDomainId) ??
     sustainabilityDomains[0];
-  const completedTaskCount = tasks.filter(Boolean).length;
-  const completion = Math.round((completedTaskCount / tasks.length) * 100);
+  const selectedPlaybook =
+    actionPlaybooks.find(playbook => playbook.domainId === selectedDomain.id) ??
+    actionPlaybooks[0];
+  const selectedPlaybookProgress = playbookProgress[selectedPlaybook.domainId];
+  const selectedPlaybookCompleteCount =
+    selectedPlaybookProgress.filter(Boolean).length;
+  const completedTaskCount = Object.values(playbookProgress)
+    .flat()
+    .filter(Boolean).length;
+  const totalTaskCount = actionPlaybooks.reduce(
+    (total, playbook) => total + playbook.steps.length,
+    0
+  );
+  const completion = Math.round((completedTaskCount / totalTaskCount) * 100);
   const dataSignals = [
     calculation.hasData,
     activeDomains.includes("energy"),
@@ -257,7 +298,7 @@ export default function Home() {
 
   const resetWorkspace = () => {
     setInputs(initialInputs);
-    setTasks(blankTasks());
+    setPlaybookProgress(blankPlaybookProgress());
     setActiveDomains([]);
     setSelectedDomainId("carbon");
     toast(
@@ -268,6 +309,15 @@ export default function Home() {
   const openDomainLearning = (domainId: DomainId) => {
     activateDomain(domainId);
     goTo("learn");
+  };
+
+  const togglePlaybookStep = (domainId: DomainId, stepIndex: number) => {
+    setPlaybookProgress(current => ({
+      ...current,
+      [domainId]: current[domainId].map((isDone, index) =>
+        index === stepIndex ? !isDone : isDone
+      ),
+    }));
   };
 
   const renderOverview = () => (
@@ -337,9 +387,9 @@ export default function Home() {
         </div>
         <div className="snapshot-stat">
           <strong>
-            {completedTaskCount}/{tasks.length}
+            {completedTaskCount}/{totalTaskCount}
           </strong>
-          <span>aksi ditandai</span>
+          <span>langkah ditandai</span>
         </div>
       </section>
 
@@ -823,101 +873,156 @@ export default function Home() {
         <div>
           <span className="eyebrow">
             <span className="eyebrow-dot" />
-            RENCANA AKSI
+            PLAYBOOK PENERAPAN
           </span>
           <h1>
-            Ubah fokus
+            Dari materi
             <br />
-            <em>menjadi kebiasaan.</em>
+            <em>ke tindakan nyata.</em>
           </h1>
           <p>
-            Rencana ini mencakup seluruh domain sustainability. Tandai tindakan
-            yang sudah dimulai, lalu lanjutkan dari bukti yang paling mudah
-            dikumpulkan.
+            Gunakan playbook untuk menuntun pemrakarsa dari scope awal,
+            pengumpulan bukti, hingga output kerja yang dapat direview. Pilih
+            satu domain dan selesaikan langkahnya secara bertahap.
           </p>
         </div>
         <div className="plan-orbit">
           <strong>{completion}%</strong>
-          <span>selesai</span>
+          <span>langkah selesai</span>
         </div>
       </section>
-      <section className="plan-layout">
-        <div className="panel-card action-list">
-          <div className="panel-card-head">
-            <div>
-              <span className="section-kicker">PROGRAM AWAL</span>
-              <h2>8 jalur yang terhubung</h2>
-            </div>
-            <span className="step-chip">
-              {completedTaskCount}/{tasks.length}
-            </span>
-          </div>
-          {sustainabilityActionTracks.map((item, index) => (
-            <label
-              className={`action-item ${tasks[index] ? "done" : ""}`}
-              key={item.title}
-            >
-              <input
-                type="checkbox"
-                checked={tasks[index]}
-                onChange={() =>
-                  setTasks(current =>
-                    current.map((task, itemIndex) =>
-                      itemIndex === index ? !task : task
-                    )
-                  )
-                }
-              />
-              <span className="check-box">
-                {tasks[index] && <Check size={15} />}
-              </span>
-              <span>
-                <b>{item.title}</b>
-                <small>{item.copy}</small>
-              </span>
-              <span className="action-domain">
-                <DomainIcon domainId={item.domainId} size={15} />
-              </span>
-            </label>
-          ))}
-        </div>
-        <aside className="plan-aside">
-          <div className="panel-card next-action">
-            <img
-              className="plan-orbit-mark"
-              src={envSustaAssets.orbitMark}
-              alt=""
-            />
-            <span className="section-kicker">FOKUS SAAT INI · FIELD NOTE</span>
-            <h3>
-              {activeDomains.length
-                ? `${activeDomains.length} domain aktif`
-                : "Tentukan domain pertama"}
-            </h3>
+      <section className="playbook-layout">
+        <aside className="playbook-rail" aria-label="Pilih playbook domain">
+          <div className="playbook-rail-head">
+            <span className="section-kicker">PILIH PLAYBOOK</span>
             <p>
-              {activeDomains.length
-                ? "Gunakan Navigator untuk meninjau data dan bukti dari domain aktif, kemudian centang tindakan yang benar-benar mulai dikerjakan."
-                : "Pilih domain berdasarkan dampak, kewajiban, atau data yang paling siap. Karbon hanya salah satu titik awal."}
+              Mulai dari dampak atau data yang paling dekat dengan operasi Anda.
             </p>
-            <small className="method-status">
-              STATUS · DRAFT LOKAL · PEMILIK BELUM DITETAPKAN
-            </small>
-            <button onClick={() => goTo("library")}>
-              {activeDomains.length ? "Buka fokus aktif" : "Pilih domain"}{" "}
-              <ArrowRight size={17} />
-            </button>
           </div>
-          <div className="impact-note">
-            <TrendingDown size={21} />
+          {actionPlaybooks.map(playbook => {
+            const domain =
+              sustainabilityDomains.find(
+                item => item.id === playbook.domainId
+              ) ?? sustainabilityDomains[0];
+            const done =
+              playbookProgress[playbook.domainId].filter(Boolean).length;
+            return (
+              <button
+                className={
+                  selectedPlaybook.domainId === playbook.domainId
+                    ? "selected"
+                    : ""
+                }
+                key={playbook.domainId}
+                onClick={() => {
+                  setSelectedDomainId(playbook.domainId);
+                  activateDomain(playbook.domainId);
+                }}
+              >
+                <span className="playbook-domain-icon">
+                  <DomainIcon domainId={playbook.domainId} size={17} />
+                </span>
+                <span>
+                  <b>{domain.shortTitle}</b>
+                  <small>
+                    {done}/{playbook.steps.length} langkah
+                  </small>
+                </span>
+                <ChevronRight size={16} />
+              </button>
+            );
+          })}
+        </aside>
+        <article className={`playbook-canvas ${selectedDomain.tone}`}>
+          <header className="playbook-head">
+            <div className="playbook-number">
+              <DomainIcon domainId={selectedPlaybook.domainId} size={26} />
+              <span>PLAYBOOK {selectedDomain.number}</span>
+            </div>
             <div>
-              <b>Urutkan tindakan dengan hati-hati.</b>
+              <span className="section-kicker">
+                UNTUK {selectedPlaybook.role.toUpperCase()}
+              </span>
+              <h2>{selectedDomain.title}</h2>
+              <p>{selectedPlaybook.goal}</p>
+            </div>
+            <div className="playbook-count">
+              <b>
+                {selectedPlaybookCompleteCount}/{selectedPlaybook.steps.length}
+              </b>
+              <small>langkah selesai</small>
+            </div>
+          </header>
+          <section className="playbook-orientation">
+            <div>
+              <span>HASIL 7 HARI PERTAMA</span>
+              <p>{selectedPlaybook.firstWeek}</p>
+            </div>
+            <div>
+              <span>CATATAN KEHATI-HATIAN</span>
+              <p>{selectedPlaybook.caution}</p>
+            </div>
+          </section>
+          <section
+            className="playbook-steps"
+            aria-label={`Langkah penerapan ${selectedDomain.title}`}
+          >
+            {selectedPlaybook.steps.map((step, index) => (
+              <article
+                className={`playbook-step ${selectedPlaybookProgress[index] ? "done" : ""}`}
+                key={step.title}
+              >
+                <div className="step-index">
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <i />
+                </div>
+                <div className="step-main">
+                  <span className="step-kicker">LANGKAH KERJA</span>
+                  <h3>{step.title}</h3>
+                  <p>{step.instruction}</p>
+                </div>
+                <div className="step-detail">
+                  <span>BUKTI YANG DIKUMPULKAN</span>
+                  <p>{step.evidence}</p>
+                  <span>OUTPUT KERJA</span>
+                  <b>{step.output}</b>
+                </div>
+                <div className="step-done">
+                  <p>
+                    <b>Selesai ketika:</b> {step.doneWhen}
+                  </p>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={selectedPlaybookProgress[index]}
+                      onChange={() =>
+                        togglePlaybookStep(selectedPlaybook.domainId, index)
+                      }
+                    />
+                    <span>
+                      {selectedPlaybookProgress[index]
+                        ? "Sudah ditandai"
+                        : "Tandai saat diterapkan"}
+                    </span>
+                  </label>
+                </div>
+              </article>
+            ))}
+          </section>
+          <footer className="playbook-footer">
+            <div>
+              <span className="section-kicker">NEXT BEST MOVE</span>
               <p>
-                Hindari dampak, kurangi intensitas, ubah proses atau sumber
-                daya, lalu kelola dampak sisa dengan klaim yang hati-hati.
+                {selectedPlaybookCompleteCount === selectedPlaybook.steps.length
+                  ? "Playbook selesai. Tinjau output bersama pemilik data dan pilih domain material berikutnya."
+                  : "Selesaikan satu langkah berikutnya dengan bukti yang mudah dikumpulkan. Hindari memulai semua domain sekaligus."}
               </p>
             </div>
-          </div>
-        </aside>
+            <button className="quiet-action" onClick={() => goTo("library")}>
+              Buka Navigator <ArrowRight size={16} />
+            </button>
+          </footer>
+        </article>
       </section>
     </>
   );
@@ -1065,7 +1170,9 @@ export default function Home() {
           </p>
           <button
             className="quiet-action"
-            onClick={() => downloadLocalData(inputs, tasks, activeDomains)}
+            onClick={() =>
+              downloadLocalData(inputs, playbookProgress, activeDomains)
+            }
           >
             <Download size={16} /> Unduh draf lokal
           </button>
@@ -1166,7 +1273,9 @@ export default function Home() {
           <span>EnvSusta</span>
         </button>
         <button
-          onClick={() => downloadLocalData(inputs, tasks, activeDomains)}
+          onClick={() =>
+            downloadLocalData(inputs, playbookProgress, activeDomains)
+          }
           aria-label="Unduh draf lokal"
         >
           <Download size={20} />
@@ -1224,7 +1333,9 @@ export default function Home() {
             </span>
             <button
               className="top-button"
-              onClick={() => downloadLocalData(inputs, tasks, activeDomains)}
+              onClick={() =>
+                downloadLocalData(inputs, playbookProgress, activeDomains)
+              }
             >
               <Download size={16} /> Ekspor
             </button>
