@@ -85,8 +85,19 @@
 
 # Landing Page Mandiri
 
-- [ ] Memisahkan shell landing page dari rail/sidebar dan navigasi mobile workspace.
-- [ ] Menjaga CTA landing page agar tetap membuka Topik, Literatur, Panduan, atau E-Calc dengan benar.
-- [ ] Memvalidasi desktop dan mobile tanpa sidebar sebelum menerbitkan pembaruan.
+- [x] Memisahkan shell landing page dari rail/sidebar dan navigasi mobile workspace.
+- [x] Menjaga CTA landing page agar tetap membuka Topik, Literatur, Panduan, atau E-Calc dengan benar.
+- [x] Memvalidasi desktop dan mobile tanpa sidebar sebelum menerbitkan pembaruan.
 
 > Audit visual: desktop dan mobile kini membuka landing page secara mandiri—tanpa rail/sidebar, topbar, maupun bottom navigation workspace. Hero dan CTA tetap terbaca penuh pada kedua ukuran layar.
+
+> Verifikasi publik: deployment GitHub Pages untuk commit `1448c44` sukses. Halaman Mulai publik tampil tanpa rail sidebar dan tanpa navigasi workspace sebelum pengunjung masuk melalui CTA.
+
+# Alur Landing ke Workspace
+
+- [x] Menambahkan header landing ringkas dengan logo dan anchor section.
+- [x] Menambahkan tombol kembali ke beranda pada workspace tools.
+- [x] Menambahkan transisi navigasi yang ringan serta menguji desktop/mobile.
+- [ ] Memvalidasi build dan menerbitkan alur pengguna yang diperbarui.
+
+> Audit visual: header landing ringkas dan CTA masuk tools tetap terbaca pada desktop/mobile. Spesimen Karbon tampil sebagai titik mulai dengan cue metode, sementara domain lain menjadi waypoint; rute titik dan orbit menghubungkan tujuan, topik, metode, dan praktik.

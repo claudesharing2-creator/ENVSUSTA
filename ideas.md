@@ -92,3 +92,5 @@ Landing page memakai urutan rute: nilai produk → tujuan pengguna → konteks m
 
 - Jalur baca ditampilkan secara eksplisit di antara tujuan, peta topik, sumber/metode, dan praktik melalui garis titik serta orbit terbuka.
 - Karbon diperlakukan sebagai spesimen lapangan awal yang menunjukkan cue metode dan sumber, sementara domain lain berfungsi sebagai waypoint pendukung.
+- Setiap bagian utama memakai bahasa rute yang fungsional: tujuan → spesimen aktif → pengecekan metode → praktik. Penanda titik dan orbit tidak dipakai sebagai dekorasi tanpa fungsi.
+- Canopy Teal dipertahankan untuk CTA, status rute aktif, kemajuan, dan cue kepercayaan; permukaan pendukung menggunakan sand, moss, apricot, dan biru pudar.

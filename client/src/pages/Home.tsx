@@ -1,5 +1,6 @@
 /** Field Guide yang Tenang: perpustakaan sustainability memakai alur topik → metode → penerapan, dengan batas penggunaan setiap metode tetap terlihat. */
 import {
+  ArrowLeft,
   ArrowDownRight,
   ArrowRight,
   BookOpen,
@@ -314,6 +315,11 @@ export default function Home() {
 
   const renderOverview = () => (
     <>
+      <header className="landing-header" aria-label="Navigasi landing page">
+        <a className="landing-header-brand" href="#workspace-main"><img src={envSustaAssets.orbitMark} alt="Mark orbit terbuka EnvSusta" /><span>EnvSusta<small>FIELD GUIDE</small></span></a>
+        <nav aria-label="Jelajahi landing page"><a href="#landing-goals">Tujuan</a><a href="#landing-topic-map">Topik</a><a href="#landing-method">Metode</a></nav>
+        <button className="landing-header-cta" onClick={() => goTo("library")}>Masuk tools <ArrowRight size={15} /></button>
+      </header>
       <section className="welcome-panel workspace-hero">
         <div className="welcome-copy">
           <div className="eyebrow"><span className="eyebrow-dot" />PETA LITERATUR SUSTAINABILITY · LOCAL-FIRST</div>
@@ -338,7 +344,7 @@ export default function Home() {
         <div className="snapshot-stat"><strong>{completedTaskCount}/{totalTaskCount}</strong><span>langkah terapan</span></div>
       </section>
 
-      <section className="landing-goals" aria-labelledby="landing-goal-title">
+      <section className="landing-goals" id="landing-goals" aria-labelledby="landing-goal-title">
         <div className="landing-goals-intro"><span className="section-kicker">PILIH TITIK MASUK</span><h2 id="landing-goal-title">Mulai dari tujuan kerja Anda.</h2><p>Pilih tujuan, lalu persempit rute dengan standar, sektor, atau tingkat kesulitan pada Peta Topik.</p></div>
         <div className="landing-goal-grid">
           <button className="landing-goal-card goal-proper" onClick={() => beginGoalRoute("Kepatuhan PROPER")}><span className="goal-index">01 · COMPLIANCE</span><Building2 size={28} /><h3>Kepatuhan PROPER</h3><p>Telusuri SML, dokumen hijau, evidence, sumber daya, dan nature dari satu peta literatur.</p><span>Mulai rute <ArrowRight size={16} /></span></button>
@@ -348,13 +354,13 @@ export default function Home() {
       </section>
       <div className="landing-route-connector" aria-hidden="true"><i /><span>GOAL SET → TOPIC MAP → SOURCE</span><i /></div>
 
-      <section className="section-head domain-head"><div><h2>Peta topik sustainability</h2><p>Pilih domain untuk memahami konsep kunci, artefak metode, rujukan bukti, dan jalur penerapan awal.</p></div><button className="text-button" onClick={() => goTo("library")}>Buka topik <ArrowRight size={16} /></button></section>
+      <section className="section-head domain-head" id="landing-topic-map"><div><h2>Peta topik sustainability</h2><p>Pilih domain untuk memahami konsep kunci, artefak metode, rujukan bukti, dan jalur penerapan awal.</p></div><button className="text-button" onClick={() => goTo("library")}>Buka topik <ArrowRight size={16} /></button></section>
       <section className="domain-overview-grid">
         {sustainabilityDomains.map((domain) => (
           <button key={domain.id} className={`domain-tile ${domain.tone} ${domain.id === "carbon" ? "recommended" : ""} ${activeDomains.includes(domain.id) ? "is-active" : ""}`} onClick={() => { setSelectedDomainId(domain.id); goTo("library"); }}>
             <div className="domain-tile-top"><span>{domain.number}</span><DomainIcon domainId={domain.id} size={20} /></div>
             <div><h3>{domain.shortTitle}</h3><p>{domain.summary}</p></div>
-            {domain.id === "carbon" && <span className="domain-specimen-note">FIELD SPECIMEN · GHG PROTOCOL · SOURCE VISIBLE</span>}
+            {domain.id === "carbon" && <><span className="domain-specimen-note">FIELD SPECIMEN · GHG PROTOCOL · SOURCE VISIBLE</span><span className="domain-start-reason"><b>WHY START HERE</b><small>Kenali batas organisasi dan activity data sebelum memilih metode hitung.</small></span></>}
             <div className="domain-tile-bottom"><small>{activeDomains.includes(domain.id) ? "Topik ditandai" : domain.id === "carbon" ? "Direkomendasikan untuk mulai" : "Buka topik"}</small><ArrowDownRight size={17} /></div>
           </button>
         ))}
@@ -363,12 +369,13 @@ export default function Home() {
 
       <section className="landing-fieldwork" aria-labelledby="fieldwork-title">
         <div className="landing-fieldwork-photo"><img src={envSustaAssets.learningAtlas} alt="Peta visual topik energi, air, material, emisi, dan nature" /><div><span>FIELD NOTE</span><b>Context comes first.</b><small>Metode selalu dibaca bersama batas penggunaannya.</small></div></div>
-        <div className="landing-fieldwork-copy"><span className="section-kicker">SEBELUM MENGUKUR</span><h2 id="fieldwork-title">Pahami konteksnya, lalu pilih metodenya.</h2><p>Setiap modul menghubungkan konsep dengan artefak kerja dan sumber metode. Saat siap menerapkan, panduan terapan membantu menerjemahkannya menjadi langkah, bukti, dan output.</p><div className="landing-note-list"><span><i>01</i> Konsep yang perlu dipahami</span><span><i>02</i> Metode dan batas penggunaan</span><span><i>03</i> Bukti dan langkah penerapan</span></div><button className="quiet-action" onClick={() => goTo("learn")}>Lihat cara membaca literatur <ArrowRight size={16} /></button></div>
+        <div className="landing-fieldwork-copy"><span className="section-kicker">SEBELUM MENGUKUR</span><h2 id="fieldwork-title">Pahami konteksnya, lalu pilih metodenya.</h2><p>Setiap modul menghubungkan konsep dengan artefak kerja dan sumber metode. Saat siap menerapkan, panduan terapan membantu menerjemahkannya menjadi langkah, bukti, dan output.</p><div className="landing-note-list"><span><i>01</i> Konsep yang perlu dipahami</span><span><i>02</i> Metode dan batas penggunaan</span><span><i>03</i> Bukti dan langkah penerapan</span></div><span className="fieldwork-route-chip">TOPIC SELECTED → METHOD CHECKED → PRACTICE READY</span><button className="quiet-action" onClick={() => goTo("learn")}>Lihat cara membaca literatur <ArrowRight size={16} /></button></div>
       </section>
 
       <section className="two-column-section">
         <div className="panel-card compass-card">
           <div className="panel-card-head"><div><span className="section-kicker">ALUR KERJA</span><h3>Gunakan 3 gerakan sederhana</h3></div><CircleHelp size={19} /></div>
+          <span className="reading-state">ROUTE 01/03 · PILIH</span>
           <div className="compass-options">
             <button onClick={() => goTo("library")}><span className="compass-icon"><NotebookTabs size={18} /></span><span><b>1. Pilih topik</b><small>Mulai dari isu atau materi yang paling relevan untuk Anda.</small></span><ChevronRight size={18} /></button>
             <button onClick={() => goTo("learn")}><span className="compass-icon"><BookOpen size={18} /></span><span><b>2. Baca konsep dan metode</b><small>Pahami istilah, artefak kerja, dan batas penggunaan metode.</small></span><ChevronRight size={18} /></button>
@@ -377,13 +384,14 @@ export default function Home() {
         </div>
         <div className="panel-card signal-card">
           <div className="panel-card-head"><div><span className="section-kicker">MODE PENGGUNAAN</span><h3>Literatur-first</h3></div><span className="local-badge"><span /> Lokal</span></div>
+          <span className="reading-state">ROUTE 02/03 · BACA</span>
           <div className="signal-number"><strong>Literatur</strong><span>konsep → metode → penerapan</span></div>
           <p>EnvSusta bukan dashboard kinerja. Pilih materi, pahami pendekatannya, lalu gunakan kalkulator atau playbook hanya ketika topik memang memerlukannya.</p>
           <div className="signal-footer"><span><Save size={14} /> {savedAt}</span><button onClick={() => goTo("library")}>Jelajahi topik <ArrowRight size={15} /></button></div>
         </div>
       </section>
 
-      <section className="landing-method-band">
+      <section className="landing-method-band" id="landing-method">
         <div><span className="section-kicker">METODE SAAT DIBUTUHKAN</span><h2>Perhitungan bukan titik awal semua topik.</h2><p>E-Calc tersedia sebagai worksheet ilustratif pada materi karbon. Ia membantu memahami alur activity data dan faktor emisi, bukan menggantikan inventaris formal atau sumber primer.</p></div>
         <aside><img src={envSustaAssets.orbitMark} alt="" /><div><span>OPTIONAL WORKSHEET</span><b>E-Calc</b><small>Metode demo untuk materi karbon</small></div><button className="primary-action" onClick={() => goTo("calculator")}>Buka E-Calc <ArrowRight size={16} /></button></aside>
       </section>
@@ -536,8 +544,8 @@ export default function Home() {
     <header className="mobile-topbar"><button onClick={() => setMobileMenuOpen(true)} aria-label="Buka navigasi"><Menu size={21} /></button><button className="brand" onClick={() => goTo("overview")}><img src={envSustaAssets.orbitMark} alt="" /><span>EnvSusta</span></button><button onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)} aria-label="Unduh catatan literatur"><Download size={20} /></button></header>
     {mobileMenuOpen && <div className="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigasi utama"><div className="mobile-menu-top"><button className="brand" onClick={() => goTo("overview")}><img src={envSustaAssets.orbitMark} alt="" /><span>EnvSusta</span></button><button onClick={() => setMobileMenuOpen(false)} aria-label="Tutup navigasi"><X size={22} /></button></div>{navItems.map((item) => { const Icon = item.icon; return <button key={item.id} className={activeView === item.id ? "active" : ""} onClick={() => goTo(item.id)}><Icon size={19} />{item.label}<ChevronRight size={17} /></button>})}<div className="mobile-menu-foot"><Save size={15} /> Catatan literatur tersimpan di perangkat ini.</div></div>}
 
-    <main className="workspace" id="workspace-main">
-      <header className="workspace-topbar"><div><span className="breadcrumb">ENVSUSTA / LITERATURE GUIDE</span><h2>{pageTitle[activeView]}</h2></div><div className="topbar-actions"><span className="autosave"><i />{savedAt}</span><button className="top-button" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)}><Download size={16} /> Catatan</button><button className="top-button icon-only" onClick={resetWorkspace} aria-label="Reset catatan lokal"><RotateCcw size={16} /></button></div></header>
+    <main className="workspace workspace-enter" id="workspace-main" key={activeView}>
+      <header className="workspace-topbar"><div><button className="back-home-link" onClick={() => goTo("overview")}><ArrowLeft size={14} /> Kembali ke beranda</button><span className="breadcrumb">ENVSUSTA / LITERATURE GUIDE</span><h2>{pageTitle[activeView]}</h2></div><div className="topbar-actions"><span className="autosave"><i />{savedAt}</span><button className="top-button" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)}><Download size={16} /> Catatan</button><button className="top-button icon-only" onClick={resetWorkspace} aria-label="Reset catatan lokal"><RotateCcw size={16} /></button></div></header>
       <div className="workspace-content">{pageContent}</div>
     </main>
     <nav className="mobile-bottom-nav" aria-label="Navigasi cepat">{navItems.map((item) => { const Icon = item.icon; return <button key={item.id} className={activeView === item.id ? "active" : ""} onClick={() => goTo(item.id)}><Icon size={18} /><span>{item.label}</span></button>; })}</nav>
