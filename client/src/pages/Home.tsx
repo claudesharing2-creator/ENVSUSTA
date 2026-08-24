@@ -1,15 +1,12 @@
-/** Field Guide yang Tenang: dashboard ini memprioritaskan langkah kecil, konteks jelas, dan data yang dapat ditelusuri. */
+/** Field Guide yang Tenang: workspace lintas domain memakai alur orientasi → data → aksi, dengan setiap keputusan dan asumsi tetap terlihat. */
 import {
   ArrowDownRight,
   ArrowRight,
   BookOpen,
-  Bot,
   Building2,
-  CalendarDays,
   Check,
   ChevronRight,
   CircleHelp,
-  ClipboardCheck,
   CloudSun,
   Download,
   Factory,
@@ -21,7 +18,6 @@ import {
   MoreHorizontal,
   NotebookTabs,
   PanelLeft,
-  Play,
   PlugZap,
   Recycle,
   Route,
@@ -43,9 +39,38 @@ import {
   type StarterFootprintInputs,
 } from "@/lib/calculations";
 import { envSustaAssets } from "@/lib/assets";
+import {
+  sustainabilityActionTracks,
+  sustainabilityDomains,
+  type DomainId,
+  type SustainabilityDomain,
+} from "@/lib/sustainability";
 
 type ViewId = "overview" | "calculator" | "learn" | "plan" | "library";
 type CalcInputs = StarterFootprintInputs;
+type LocalWorkspace = {
+  inputs: CalcInputs;
+  tasks: boolean[];
+  activeDomains: DomainId[];
+  updatedAt?: string;
+};
+
+const initialInputs: CalcInputs = {
+  electricity: "",
+  diesel: "",
+  transport: "",
+  waste: "",
+};
+const domainIcons: Record<DomainId, typeof Leaf> = {
+  carbon: CloudSun,
+  energy: Zap,
+  water: Waves,
+  waste: Recycle,
+  materials: Factory,
+  nature: Leaf,
+  esg: LineChart,
+  markets: WalletCards,
+};
 
 const navItems: {
   id: ViewId;
@@ -57,84 +82,42 @@ const navItems: {
   { id: "calculator", label: "Kalkulator", icon: Footprints, note: "E-Calc" },
   { id: "learn", label: "Belajar", icon: BookOpen },
   { id: "plan", label: "Rencana aksi", icon: Target },
-  { id: "library", label: "Kamus data", icon: NotebookTabs },
+  { id: "library", label: "Navigator", icon: NotebookTabs },
 ];
 
-const lessons = [
-  {
-    id: "footprint",
-    number: "01",
-    title: "Kenali jejak karbon",
-    copy: "Mulai dari empat aktivitas yang paling mudah Anda temukan datanya.",
-    icon: Footprints,
-    tone: "teal",
-    minutes: "6 menit",
-    detail:
-      "Jejak karbon adalah perkiraan emisi gas rumah kaca yang terkait dengan aktivitas. Untuk langkah pertama, fokuskan pada data yang dapat dibuktikan: tagihan listrik, pembelian bahan bakar, perjalanan, dan catatan limbah.",
-  },
-  {
-    id: "scope",
-    number: "02",
-    title: "Pahami Scope 1–3",
-    copy: "Klasifikasikan sumber emisi tanpa harus memahami semua standar sekaligus.",
-    icon: CloudSun,
-    tone: "sand",
-    minutes: "8 menit",
-    detail:
-      "Scope 1 adalah emisi langsung seperti pembakaran bahan bakar. Scope 2 terkait energi yang dibeli. Scope 3 mencakup value chain, misalnya perjalanan, pengadaan, dan limbah. Mulailah dari materialitas dan kualitas data, bukan dari kesempurnaan.",
-  },
-  {
-    id: "energy",
-    number: "03",
-    title: "Baca energi Anda",
-    copy: "Temukan penggunaan terbesar sebelum mencari proyek teknologi baru.",
-    icon: Zap,
-    tone: "apricot",
-    minutes: "5 menit",
-    detail:
-      "Manajemen energi dimulai dengan baseline dan pola penggunaan. Bandingkan konsumsi dengan output yang relevan, lalu cari perubahan yang bisa dilakukan tanpa mengorbankan layanan atau keselamatan.",
-  },
-];
+function blankTasks() {
+  return sustainabilityActionTracks.map((_, index) => index === 0);
+}
 
-const libraryTopics = [
-  [
-    "GHG Accounting",
-    "Scope 1, 2, 3 · faktor emisi · data aktivitas",
-    "Sumber angka yang jelas",
-  ],
-  [
-    "Manajemen energi",
-    "Baseline · EnPI · penggunaan signifikan",
-    "Konsumsi menjadi tindakan",
-  ],
-  [
-    "ESG & disclosure",
-    "Materiality · KPI · governance · evidence",
-    "Siap dibaca stakeholder",
-  ],
-  [
-    "Carbon market",
-    "Allowance · credit · retirement · claim",
-    "Pisahkan gross dan offset",
-  ],
-  [
-    "Air & limbah",
-    "Withdrawal · discharge · waste hierarchy",
-    "Dampak di luar karbon",
-  ],
-  [
-    "Nature & circularity",
-    "Biodiversity · material flow · supplier",
-    "Pikirkan value chain",
-  ],
-];
+function normalizeTasks(tasks?: boolean[]) {
+  const fallback = blankTasks();
+  return fallback.map((item, index) => tasks?.[index] ?? item);
+}
 
-const initialInputs: CalcInputs = {
-  electricity: "",
-  diesel: "",
-  transport: "",
-  waste: "",
-};
+function readLocalWorkspace(): LocalWorkspace {
+  if (typeof window === "undefined")
+    return { inputs: initialInputs, tasks: blankTasks(), activeDomains: [] };
+  try {
+    const raw = window.localStorage.getItem("envsusta-local-workspace");
+    if (!raw)
+      return { inputs: initialInputs, tasks: blankTasks(), activeDomains: [] };
+    const parsed = JSON.parse(raw) as Partial<LocalWorkspace>;
+    const activeDomains = Array.isArray(parsed.activeDomains)
+      ? parsed.activeDomains.filter((id): id is DomainId =>
+          sustainabilityDomains.some(domain => domain.id === id)
+        )
+      : [];
+    return {
+      inputs: { ...initialInputs, ...(parsed.inputs ?? {}) },
+      tasks: normalizeTasks(parsed.tasks),
+      activeDomains,
+      updatedAt: parsed.updatedAt,
+    };
+  } catch {
+    window.localStorage.removeItem("envsusta-local-workspace");
+    return { inputs: initialInputs, tasks: blankTasks(), activeDomains: [] };
+  }
+}
 
 function formatNumber(value: number, maxFractionDigits = 1) {
   return new Intl.NumberFormat("id-ID", {
@@ -142,13 +125,23 @@ function formatNumber(value: number, maxFractionDigits = 1) {
   }).format(value);
 }
 
-function downloadLocalData(inputs: CalcInputs, tasks: boolean[]) {
+function formatSavedAt(updatedAt?: string) {
+  if (!updatedAt) return "Belum ada perubahan";
+  return `Tersimpan ${new Date(updatedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function downloadLocalData(
+  inputs: CalcInputs,
+  tasks: boolean[],
+  activeDomains: DomainId[]
+) {
   const payload = {
     app: "EnvSusta",
     exportedAt: new Date().toISOString(),
     calculatorInputs: inputs,
     actionPlan: tasks,
-    note: "Draf lokal. Faktor perhitungan pada versi demo bersifat ilustratif dan perlu disesuaikan dengan metodologi serta sumber faktor resmi yang dipilih organisasi.",
+    activeDomains,
+    note: "Draf lokal untuk orientasi dan aksi awal. Faktor perhitungan pada versi demo bersifat ilustratif; pilih faktor resmi, batas organisasi, dan metodologi yang sesuai sebelum menggunakan hasil untuk pelaporan formal.",
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], {
     type: "application/json",
@@ -161,7 +154,19 @@ function downloadLocalData(inputs: CalcInputs, tasks: boolean[]) {
   URL.revokeObjectURL(href);
 }
 
+function DomainIcon({
+  domainId,
+  size = 20,
+}: {
+  domainId: DomainId;
+  size?: number;
+}) {
+  const Icon = domainIcons[domainId];
+  return <Icon size={size} strokeWidth={1.8} />;
+}
+
 export default function Home() {
+  const [workspaceSeed] = useState<LocalWorkspace>(() => readLocalWorkspace());
   const [activeView, setActiveView] = useState<ViewId>(() => {
     const candidate = new URLSearchParams(window.location.search).get("view");
     return candidate === "calculator" ||
@@ -172,57 +177,53 @@ export default function Home() {
       : "overview";
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [inputs, setInputs] = useState<CalcInputs>(initialInputs);
-  const [savedAt, setSavedAt] = useState<string>("Belum ada perubahan");
-  const [tasks, setTasks] = useState([true, false, false, false]);
-  const [selectedLesson, setSelectedLesson] = useState(lessons[0]);
+  const [inputs, setInputs] = useState<CalcInputs>(workspaceSeed.inputs);
+  const [savedAt, setSavedAt] = useState(
+    formatSavedAt(workspaceSeed.updatedAt)
+  );
+  const [tasks, setTasks] = useState(() => normalizeTasks(workspaceSeed.tasks));
+  const [activeDomains, setActiveDomains] = useState<DomainId[]>(
+    workspaceSeed.activeDomains
+  );
+  const [selectedDomainId, setSelectedDomainId] = useState<DomainId>(
+    workspaceSeed.activeDomains[0] ?? "carbon"
+  );
   const [showMethod, setShowMethod] = useState(false);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem("envsusta-local-workspace");
-    if (!saved) return;
-    try {
-      const parsed = JSON.parse(saved) as {
-        inputs?: CalcInputs;
-        tasks?: boolean[];
-        updatedAt?: string;
-      };
-      if (parsed.inputs) setInputs({ ...initialInputs, ...parsed.inputs });
-      if (parsed.tasks && Array.isArray(parsed.tasks)) setTasks(parsed.tasks);
-      if (parsed.updatedAt)
-        setSavedAt(
-          `Tersimpan ${new Date(parsed.updatedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`
-        );
-    } catch {
-      window.localStorage.removeItem("envsusta-local-workspace");
-    }
-  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const updatedAt = new Date().toISOString();
       window.localStorage.setItem(
         "envsusta-local-workspace",
-        JSON.stringify({ inputs, tasks, updatedAt })
+        JSON.stringify({ inputs, tasks, activeDomains, updatedAt })
       );
-      setSavedAt(
-        `Tersimpan ${new Date(updatedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`
-      );
-    }, 550);
+      setSavedAt(formatSavedAt(updatedAt));
+    }, 500);
     return () => window.clearTimeout(timer);
-  }, [inputs, tasks]);
+  }, [inputs, tasks, activeDomains]);
 
   const calculation = useMemo(
     () => calculateStarterFootprint(inputs),
     [inputs]
   );
-
+  const selectedDomain =
+    sustainabilityDomains.find(domain => domain.id === selectedDomainId) ??
+    sustainabilityDomains[0];
   const completedTaskCount = tasks.filter(Boolean).length;
   const completion = Math.round((completedTaskCount / tasks.length) * 100);
+  const dataSignals = [
+    calculation.hasData,
+    activeDomains.includes("energy"),
+    activeDomains.includes("water"),
+    activeDomains.includes("waste"),
+    activeDomains.includes("materials"),
+    activeDomains.includes("nature"),
+  ].filter(Boolean).length;
 
   const changeInput =
     (key: keyof CalcInputs) => (event: ChangeEvent<HTMLInputElement>) => {
-      setInputs(current => ({ ...current, [key]: event.target.value }));
+      const nextValue = event.currentTarget.value;
+      setInputs(current => ({ ...current, [key]: nextValue }));
     };
 
   const goTo = (view: ViewId) => {
@@ -238,41 +239,60 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const activateDomain = (domainId: DomainId, destination?: ViewId) => {
+    setSelectedDomainId(domainId);
+    setActiveDomains(current =>
+      current.includes(domainId) ? current : [...current, domainId]
+    );
+    if (destination) goTo(destination);
+  };
+
   const handleQuickStart = () => {
+    activateDomain("carbon");
     goTo("calculator");
-    toast("Mulai dari angka yang Anda miliki. Estimasi tetap diberi label.");
+    toast(
+      "Mulai dari angka yang tersedia. Estimasi tetap diberi label data awal."
+    );
   };
 
   const resetWorkspace = () => {
     setInputs(initialInputs);
-    setTasks([true, false, false, false]);
-    toast("Draf lokal dikosongkan. Anda bisa mulai lagi kapan saja.");
+    setTasks(blankTasks());
+    setActiveDomains([]);
+    setSelectedDomainId("carbon");
+    toast(
+      "Draf lokal dikosongkan. Anda dapat memulai ulang dari domain mana pun."
+    );
+  };
+
+  const openDomainLearning = (domainId: DomainId) => {
+    activateDomain(domainId);
+    goTo("learn");
   };
 
   const renderOverview = () => (
     <>
-      <section className="welcome-panel">
+      <section className="welcome-panel workspace-hero">
         <div className="welcome-copy">
           <div className="eyebrow">
             <span className="eyebrow-dot" />
-            WORKSPACE PRIBADI · LANGKAH 01 DARI 04
+            WORKSPACE SUSTAINABILITY · LOCAL-FIRST
           </div>
           <h1>
-            Mulai dari data
+            Satu ruang kerja.
             <br />
-            <em>yang sudah ada.</em>
+            <em>Seluruh dampak.</em>
           </h1>
           <p>
-            EnvSusta membantu Anda memahami sustainability lewat angka
-            sehari-hari, kemudian menerjemahkannya menjadi langkah yang lebih
-            baik.
+            Petakan karbon, energi, air, limbah, material, nature, ESG, dan
+            carbon market dari data yang sudah Anda miliki.
           </p>
           <div className="welcome-actions">
-            <button className="primary-action" onClick={handleQuickStart}>
-              Buat estimasi pertama <ArrowDownRight size={18} />
+            <button className="primary-action" onClick={() => goTo("library")}>
+              Pilih fokus awal <ArrowDownRight size={18} />
             </button>
             <button className="quiet-action" onClick={() => goTo("learn")}>
-              Lihat panduan singkat <ArrowRight size={17} />
+              Lihat jalur belajar <ArrowRight size={17} />
             </button>
           </div>
           <p className="privacy-line">
@@ -286,108 +306,116 @@ export default function Home() {
           />
           <div className="visual-stamp">
             <span>FIELD NOTE</span>
-            <b>01</b>
-            <small>DATA → AKSI</small>
+            <b>{String(activeDomains.length || 1).padStart(2, "0")}</b>
+            <small>FOCUS AREAS</small>
           </div>
         </div>
       </section>
 
-      <section className="progress-strip" aria-label="Kemajuan awal Anda">
-        <div className="trail-block">
-          <span className="trail-index">01</span>
-          <div>
-            <b>Kenali konteks</b>
-            <small>Satu perubahan kecil sudah dimulai.</small>
-          </div>
-          <span className="trail-check">
-            <Check size={15} />
+      <section
+        className="workspace-snapshot"
+        aria-label="Snapshot sustainability workspace"
+      >
+        <div className="snapshot-copy">
+          <span className="section-kicker">SNAPSHOT HARI INI</span>
+          <h2>Mulai dari area yang paling siap datanya.</h2>
+          <p>
+            Belum perlu menyelesaikan seluruh agenda sekaligus. Pilih fokus,
+            kumpulkan bukti, lalu ubah temuan menjadi aksi.
+          </p>
+          <span className="observation-stamp">
+            OBSERVATION · LOCAL DRAFT · SOURCE VISIBLE
           </span>
         </div>
-        <div className="trail-line active" />
-        <div className="trail-block active">
-          <span className="trail-index">02</span>
-          <div>
-            <b>Masukkan data</b>
-            <small>Listrik, bahan bakar, perjalanan, limbah.</small>
-          </div>
-          <span className="trail-pulse" />
+        <div className="snapshot-stat">
+          <strong>{activeDomains.length}</strong>
+          <span>fokus aktif</span>
         </div>
-        <div className="trail-line" />
-        <div className="trail-block">
-          <span className="trail-index">03</span>
-          <div>
-            <b>Baca hasil</b>
-            <small>Temukan sumber emisi utama.</small>
-          </div>
+        <div className="snapshot-stat">
+          <strong>{dataSignals}/6</strong>
+          <span>sinyal data awal</span>
         </div>
-        <div className="trail-line" />
-        <div className="trail-block">
-          <span className="trail-index">04</span>
-          <div>
-            <b>Rencanakan aksi</b>
-            <small>Jadikan target lebih nyata.</small>
-          </div>
+        <div className="snapshot-stat">
+          <strong>
+            {completedTaskCount}/{tasks.length}
+          </strong>
+          <span>aksi ditandai</span>
         </div>
       </section>
 
-      <section className="section-head">
+      <section className="section-head domain-head">
         <div>
-          <span className="eyebrow">
-            <span className="eyebrow-dot" />
-            LANGKAH BERIKUTNYA
-          </span>
-          <h2>Jangan menunggu data sempurna.</h2>
+          <h2>Peta sustainability Anda</h2>
+          <p>
+            Pilih salah satu domain untuk melihat data yang perlu dikumpulkan,
+            metrik yang dapat dipantau, dan langkah pertama.
+          </p>
         </div>
-        <button className="text-button" onClick={() => goTo("learn")}>
-          Lihat semua materi <ArrowRight size={16} />
+        <button className="text-button" onClick={() => goTo("library")}>
+          Buka Navigator <ArrowRight size={16} />
         </button>
       </section>
-      <section className="starter-grid">
-        {lessons.map(lesson => {
-          const Icon = lesson.icon;
-          return (
-            <button
-              key={lesson.id}
-              className={`starter-card ${lesson.tone}`}
-              onClick={() => {
-                setSelectedLesson(lesson);
-                goTo("learn");
-              }}
-            >
-              <div className="starter-card-top">
-                <span>{lesson.number}</span>
-                <Icon size={21} />
-              </div>
-              <div>
-                <h3>{lesson.title}</h3>
-                <p>{lesson.copy}</p>
-              </div>
-              <div className="starter-card-bottom">
-                <small>{lesson.minutes}</small>
-                <ArrowDownRight size={18} />
-              </div>
-            </button>
-          );
-        })}
+      <section className="domain-overview-grid">
+        {sustainabilityDomains.map(domain => (
+          <button
+            key={domain.id}
+            className={`domain-tile ${domain.tone} ${domain.id === "carbon" ? "recommended" : ""} ${activeDomains.includes(domain.id) ? "is-active" : ""}`}
+            onClick={() => {
+              setSelectedDomainId(domain.id);
+              goTo("library");
+            }}
+          >
+            <div className="domain-tile-top">
+              <span>{domain.number}</span>
+              <DomainIcon domainId={domain.id} size={20} />
+            </div>
+            <div>
+              <h3>{domain.shortTitle}</h3>
+              <p>{domain.summary}</p>
+            </div>
+            <div className="domain-tile-bottom">
+              <small>
+                {activeDomains.includes(domain.id)
+                  ? "Fokus aktif"
+                  : domain.id === "carbon"
+                    ? "Direkomendasikan untuk mulai"
+                    : "Buka domain"}
+              </small>
+              <ArrowDownRight size={17} />
+            </div>
+          </button>
+        ))}
       </section>
 
       <section className="two-column-section">
         <div className="panel-card compass-card">
           <div className="panel-card-head">
             <div>
-              <span className="eyebrow">PETA AWAL</span>
-              <h3>Di mana Anda ingin mulai?</h3>
+              <span className="section-kicker">ALUR KERJA</span>
+              <h3>Gunakan 3 gerakan sederhana</h3>
             </div>
             <CircleHelp size={19} />
           </div>
           <div className="compass-options">
-            <button onClick={() => goTo("calculator")}>
+            <button onClick={() => goTo("library")}>
               <span className="compass-icon">
-                <Zap size={18} />
+                <NotebookTabs size={18} />
               </span>
               <span>
-                <b>Energi & emisi</b>
-                <small>Kalkulasi dari listrik dan bahan bakar.</small>
+                <b>1. Tentukan fokus</b>
+                <small>
+                  Pilih domain berdasarkan dampak dan data yang siap.
+                </small>
+              </span>
+              <ChevronRight size={18} />
+            </button>
+            <button onClick={() => goTo("learn")}>
+              <span className="compass-icon">
+                <BookOpen size={18} />
+              </span>
+              <span>
+                <b>2. Pahami metodenya</b>
+                <small>Baca metric, bukti, dan batas penggunaan data.</small>
               </span>
               <ChevronRight size={18} />
             </button>
@@ -396,18 +424,10 @@ export default function Home() {
                 <Target size={18} />
               </span>
               <span>
-                <b>Target & rencana</b>
-                <small>Ubah insight menjadi tindakan kecil.</small>
-              </span>
-              <ChevronRight size={18} />
-            </button>
-            <button onClick={() => goTo("library")}>
-              <span className="compass-icon">
-                <Leaf size={18} />
-              </span>
-              <span>
-                <b>Topik lanjutan</b>
-                <small>Air, circularity, ESG, dan carbon market.</small>
+                <b>3. Tindak lanjuti</b>
+                <small>
+                  Ubah satu temuan menjadi tindakan yang punya pemilik.
+                </small>
               </span>
               <ChevronRight size={18} />
             </button>
@@ -416,7 +436,7 @@ export default function Home() {
         <div className="panel-card signal-card">
           <div className="panel-card-head">
             <div>
-              <span className="eyebrow">STATUS DATA</span>
+              <span className="section-kicker">STATUS DATA</span>
               <h3>Ruang kerja Anda</h3>
             </div>
             <span className="local-badge">
@@ -433,15 +453,18 @@ export default function Home() {
           </div>
           <p>
             {calculation.hasData
-              ? "Angka awal tersedia. Lanjutkan dengan memeriksa sumber dan faktor emisi yang digunakan."
-              : "Belum ada angka yang dihitung. Masukkan satu sumber data untuk membuat baseline awal."}
+              ? "Baseline karbon tersedia sebagai salah satu input. Lanjutkan dengan melengkapi domain lain yang material bagi organisasi Anda."
+              : "Belum ada baseline karbon. Anda tetap dapat memulai dari air, limbah, material, nature, atau ESG."}
           </p>
           <div className="signal-footer">
             <span>
               <Save size={14} /> {savedAt}
             </span>
-            <button onClick={handleQuickStart}>
-              Buka kalkulator <ArrowRight size={15} />
+            <button
+              onClick={() => goTo(calculation.hasData ? "plan" : "library")}
+            >
+              {calculation.hasData ? "Buka aksi" : "Pilih fokus"}{" "}
+              <ArrowRight size={15} />
             </button>
           </div>
         </div>
@@ -455,17 +478,16 @@ export default function Home() {
         <div>
           <span className="eyebrow">
             <span className="eyebrow-dot" />
-            E-CALC · ESTIMASI AWAL
+            E-CALC · DATA KARBON
           </span>
           <h1>
-            Mulai dari aktivitas
+            Hitung jejak karbon
             <br />
-            <em>yang bisa Anda cek.</em>
+            <em>tanpa kehilangan konteks.</em>
           </h1>
           <p>
-            Masukkan data dalam periode yang sama, misalnya satu bulan. Hasil
-            ini membantu membuat baseline awal dan bukan inventaris GRK yang
-            telah diverifikasi.
+            E-Calc adalah salah satu modul dalam workspace. Masukkan data
+            aktivitas dalam periode yang sama untuk membuat baseline awal.
           </p>
         </div>
         <img
@@ -478,19 +500,21 @@ export default function Home() {
           className="panel-card calculation-form"
           onSubmit={(event: FormEvent) => {
             event.preventDefault();
-            toast("Estimasi awal telah diperbarui dan tersimpan lokal.");
+            activateDomain("carbon");
+            toast("Estimasi awal diperbarui dan tersimpan lokal.");
           }}
         >
           <div className="panel-card-head">
             <div>
-              <span className="eyebrow">DATA AKTIVITAS</span>
+              <span className="section-kicker">DATA AKTIVITAS</span>
               <h2>Masukkan yang Anda tahu</h2>
             </div>
-            <span className="step-chip">1 / 2</span>
+            <span className="step-chip">E-CALC</span>
           </div>
           <p className="form-lead">
-            Tidak punya semua data? Isi satu atau dua sumber dulu. Anda dapat
-            menyempurnakannya nanti.
+            Masukkan angka penuh, termasuk beberapa digit. Nilai disimpan
+            sebagai draf lokal dan tidak akan di-reset ketika Anda berpindah
+            field.
           </p>
           <div className="input-stack">
             <label className="input-row">
@@ -506,8 +530,9 @@ export default function Home() {
                   inputMode="decimal"
                   value={inputs.electricity}
                   onChange={changeInput("electricity")}
-                  placeholder="0"
+                  placeholder="Contoh: 1250"
                   aria-label="Listrik dalam kWh"
+                  autoComplete="off"
                 />
                 <em>kWh</em>
               </span>
@@ -525,8 +550,9 @@ export default function Home() {
                   inputMode="decimal"
                   value={inputs.diesel}
                   onChange={changeInput("diesel")}
-                  placeholder="0"
+                  placeholder="Contoh: 80"
                   aria-label="Solar dalam liter"
+                  autoComplete="off"
                 />
                 <em>L</em>
               </span>
@@ -544,8 +570,9 @@ export default function Home() {
                   inputMode="decimal"
                   value={inputs.transport}
                   onChange={changeInput("transport")}
-                  placeholder="0"
+                  placeholder="Contoh: 430"
                   aria-label="Perjalanan dalam kilometer"
+                  autoComplete="off"
                 />
                 <em>km</em>
               </span>
@@ -563,8 +590,9 @@ export default function Home() {
                   inputMode="decimal"
                   value={inputs.waste}
                   onChange={changeInput("waste")}
-                  placeholder="0"
+                  placeholder="Contoh: 250"
                   aria-label="Limbah dalam kilogram"
+                  autoComplete="off"
                 />
                 <em>kg</em>
               </span>
@@ -576,20 +604,22 @@ export default function Home() {
               className="quiet-action"
               onClick={() => setShowMethod(current => !current)}
             >
-              <CircleHelp size={16} /> Lihat asumsi
+              <CircleHelp size={16} />{" "}
+              {showMethod ? "Tutup asumsi" : "Lihat asumsi"}
             </button>
             <button type="submit" className="primary-action">
-              Perbarui estimasi <ArrowRight size={17} />
+              Simpan estimasi <ArrowRight size={17} />
             </button>
           </div>
           {showMethod && (
             <div className="method-note">
-              <b>Metode demo</b>
+              <b>Metode demo yang terlihat</b>
               <p>
                 Hasil dihitung dari data aktivitas × faktor ilustratif: listrik
                 0,82 kgCO₂e/kWh, diesel 2,68 kgCO₂e/L, transport 0,18 kgCO₂e/km,
-                limbah 0,45 kgCO₂e/kg. Pilih faktor, GWP, batas organisasi, dan
-                sumber resmi sebelum memakai hasil untuk pelaporan formal.
+                limbah 0,45 kgCO₂e/kg. Faktor, GWP, batas organisasi, dan sumber
+                harus disesuaikan sebelum menggunakan hasil untuk pelaporan
+                formal.
               </p>
             </div>
           )}
@@ -615,22 +645,22 @@ export default function Home() {
             </div>
             <h2>
               {calculation.hasData
-                ? "Baseline awal Anda"
+                ? "Baseline karbon Anda"
                 : "Belum ada baseline"}
             </h2>
             <p>
               {calculation.hasData
-                ? "Gunakan hasil ini untuk menemukan sumber terbesar—bukan untuk membuat klaim net-zero atau offset."
-                : "Masukkan salah satu aktivitas di samping untuk memulai estimasi pertama."}
+                ? "Gunakan hasil ini untuk menemukan sumber terbesar. Gross emissions tetap dicatat terpisah dari offset, credit, atau allowance."
+                : "Masukkan satu aktivitas untuk memulai baseline. Anda juga dapat memilih domain sustainability lain di Navigator."}
             </p>
             <button className="result-link" onClick={() => goTo("plan")}>
-              Jadikan rencana aksi <ArrowRight size={16} />
+              Buka rencana aksi <ArrowRight size={16} />
             </button>
           </div>
           <div className="breakdown-card">
             <div className="panel-card-head">
               <div>
-                <span className="eyebrow">KONTRIBUSI EMISI</span>
+                <span className="section-kicker">KONTRIBUSI KARBON</span>
                 <h3>Menurut sumber data</h3>
               </div>
               <MoreHorizontal size={19} />
@@ -666,15 +696,16 @@ export default function Home() {
       </section>
       <section className="calculator-callout">
         <div>
-          <span className="eyebrow">CATATAN PENTING</span>
-          <h3>Gross emissions selalu terlihat lebih dulu.</h3>
+          <span className="section-kicker">BATAS PENGGUNAAN</span>
+          <h3>Kalkulator bukan seluruh program sustainability.</h3>
           <p>
-            Carbon credit, allowance, atau offset perlu dicatat sebagai
-            instrumen pasar yang terpisah. Mereka tidak menghapus angka Scope
-            1–3 Anda secara otomatis.
+            Gunakan Navigator untuk menambahkan air, limbah, material, nature,
+            ESG, dan carbon market ke dalam rencana kerja yang sama.
           </p>
         </div>
-        <WalletCards size={34} />
+        <button className="quiet-action" onClick={() => goTo("library")}>
+          Buka Navigator <ArrowRight size={17} />
+        </button>
       </section>
     </>
   );
@@ -688,205 +719,208 @@ export default function Home() {
             PETA BELAJAR
           </span>
           <h1>
-            Pahami konteks.
+            Pahami domainnya.
             <br />
             <em>Lalu pilih aksi.</em>
           </h1>
           <p>
-            Materi dibuat untuk membangun fondasi sebelum Anda menyentuh
-            standar, disclosure, atau carbon market yang lebih kompleks.
+            Delapan modul memperkenalkan cara berpikir, data, metrik, dan bukti
+            yang diperlukan sebelum masuk ke standar atau disclosure yang lebih
+            kompleks.
           </p>
         </div>
         <div className="learning-stat">
-          <span>JALUR PEMULA</span>
-          <strong>04</strong>
-          <p>langkah kecil menuju workspace yang lebih siap.</p>
+          <span>MODUL TERSEDIA</span>
+          <strong>08</strong>
+          <p>dari karbon sampai nature dan carbon market.</p>
         </div>
       </section>
       <section className="learning-layout">
-        <nav className="lesson-nav" aria-label="Daftar materi">
-          {lessons.map(lesson => {
-            const Icon = lesson.icon;
-            return (
-              <button
-                className={selectedLesson.id === lesson.id ? "selected" : ""}
-                key={lesson.id}
-                onClick={() => setSelectedLesson(lesson)}
-              >
-                <span>{lesson.number}</span>
-                <Icon size={19} />
-                <div>
-                  <b>{lesson.title}</b>
-                  <small>{lesson.minutes}</small>
-                </div>
-                <ChevronRight size={17} />
-              </button>
-            );
-          })}
-          <button className="lesson-nav-more" onClick={() => goTo("library")}>
-            <span>04</span>
-            <Sparkles size={19} />
-            <div>
-              <b>Lanjut ke topik lain</b>
-              <small>ESG, air, circularity, nature.</small>
-            </div>
-            <ChevronRight size={17} />
-          </button>
+        <nav className="lesson-nav extended" aria-label="Daftar materi">
+          {sustainabilityDomains.map(domain => (
+            <button
+              className={selectedDomain.id === domain.id ? "selected" : ""}
+              key={domain.id}
+              onClick={() => setSelectedDomainId(domain.id)}
+            >
+              <span>{domain.number}</span>
+              <DomainIcon domainId={domain.id} size={19} />
+              <div>
+                <b>{domain.shortTitle}</b>
+                <small>{domain.lessonMinutes}</small>
+              </div>
+              <ChevronRight size={17} />
+            </button>
+          ))}
         </nav>
-        <article className="lesson-article">
-          <div className="lesson-hero">
+        <article className="lesson-article domain-lesson">
+          <div className={`lesson-hero ${selectedDomain.tone}`}>
             <img
               src={envSustaAssets.learningAtlas}
               alt="Peta belajar sustainability dengan energi, air, material, emisi, dan nature"
             />
             <div>
-              <span className="eyebrow">MATERI {selectedLesson.number}</span>
-              <h2>{selectedLesson.title}</h2>
-              <p>{selectedLesson.copy}</p>
+              <span className="section-kicker">
+                MODUL {selectedDomain.number}
+              </span>
+              <h2>{selectedDomain.title}</h2>
+              <p>{selectedDomain.summary}</p>
             </div>
           </div>
           <div className="article-body">
             <div className="article-copy">
-              <p>{selectedLesson.detail}</p>
+              <p>{selectedDomain.description}</p>
               <p>
-                Anda tidak perlu langsung mencari semua jawaban. Mulailah dengan
-                membedakan **data aktivitas**, **faktor emisi**, dan **hasil
-                estimasi**. Ketiga hal ini akan menjadi fondasi untuk langkah
-                yang lebih tertib.
+                <b>Langkah pertama:</b> {selectedDomain.firstAction}
               </p>
             </div>
             <aside className="field-note">
               <span>FIELD NOTE</span>
-              <b>Yang perlu dibuktikan</b>
+              <b>Bukti minimum</b>
               <ul>
-                <li>Sumber data dan periodenya</li>
-                <li>Unit yang digunakan</li>
-                <li>Asumsi atau estimasi yang dipakai</li>
+                {selectedDomain.evidence.map(item => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </aside>
           </div>
-          <button className="primary-action" onClick={handleQuickStart}>
-            Coba dengan data saya <ArrowRight size={17} />
-          </button>
+          <div className="lesson-detail-grid">
+            <div>
+              <span>METRIK AWAL</span>
+              {selectedDomain.metrics.map(item => (
+                <b key={item}>{item}</b>
+              ))}
+            </div>
+            <div>
+              <span>DATA YANG DIKUMPULKAN</span>
+              {selectedDomain.dataPoints.map(item => (
+                <b key={item}>{item}</b>
+              ))}
+            </div>
+          </div>
+          <div className="lesson-actions">
+            <button
+              className="primary-action"
+              onClick={() => activateDomain(selectedDomain.id, "plan")}
+            >
+              Tambahkan ke rencana <ArrowRight size={17} />
+            </button>
+            <button
+              className="quiet-action"
+              onClick={() => activateDomain(selectedDomain.id, "library")}
+            >
+              Buka data domain <ArrowRight size={16} />
+            </button>
+          </div>
         </article>
       </section>
     </>
   );
 
-  const renderPlan = () => {
-    const taskItems = [
-      [
-        "Tetapkan periode baseline",
-        "Pilih satu bulan atau satu tahun untuk memulai.",
-      ],
-      ["Kumpulkan tagihan listrik", "Simpan bukti kWh dan lokasi penggunaan."],
-      [
-        "Petakan bahan bakar & perjalanan",
-        "Catat volume, kendaraan, atau kilometer.",
-      ],
-      [
-        "Pilih satu peluang pengurangan",
-        "Fokus pada sumber emisi terbesar lebih dulu.",
-      ],
-    ];
-    return (
-      <>
-        <section className="page-intro plan-intro">
-          <div>
-            <span className="eyebrow">
-              <span className="eyebrow-dot" />
-              RENCANA AKSI
+  const renderPlan = () => (
+    <>
+      <section className="page-intro plan-intro">
+        <div>
+          <span className="eyebrow">
+            <span className="eyebrow-dot" />
+            RENCANA AKSI
+          </span>
+          <h1>
+            Ubah fokus
+            <br />
+            <em>menjadi kebiasaan.</em>
+          </h1>
+          <p>
+            Rencana ini mencakup seluruh domain sustainability. Tandai tindakan
+            yang sudah dimulai, lalu lanjutkan dari bukti yang paling mudah
+            dikumpulkan.
+          </p>
+        </div>
+        <div className="plan-orbit">
+          <strong>{completion}%</strong>
+          <span>selesai</span>
+        </div>
+      </section>
+      <section className="plan-layout">
+        <div className="panel-card action-list">
+          <div className="panel-card-head">
+            <div>
+              <span className="section-kicker">PROGRAM AWAL</span>
+              <h2>8 jalur yang terhubung</h2>
+            </div>
+            <span className="step-chip">
+              {completedTaskCount}/{tasks.length}
             </span>
-            <h1>
-              Ubah baseline
-              <br />
-              <em>menjadi kebiasaan.</em>
-            </h1>
-            <p>
-              Rencana ini dibuat agar pekerjaan sustainability punya pemilik,
-              bukti, dan langkah kecil berikutnya.
-            </p>
           </div>
-          <div className="plan-orbit">
-            <strong>{completion}%</strong>
-            <span>selesai</span>
-          </div>
-        </section>
-        <section className="plan-layout">
-          <div className="panel-card action-list">
-            <div className="panel-card-head">
-              <div>
-                <span className="eyebrow">CHECKLIST AWAL</span>
-                <h2>4 langkah yang realistis</h2>
-              </div>
-              <span className="step-chip">{completedTaskCount}/4</span>
-            </div>
-            {taskItems.map(([title, copy], index) => (
-              <label
-                className={`action-item ${tasks[index] ? "done" : ""}`}
-                key={title}
-              >
-                <input
-                  type="checkbox"
-                  checked={tasks[index]}
-                  onChange={() =>
-                    setTasks(current =>
-                      current.map((task, itemIndex) =>
-                        itemIndex === index ? !task : task
-                      )
+          {sustainabilityActionTracks.map((item, index) => (
+            <label
+              className={`action-item ${tasks[index] ? "done" : ""}`}
+              key={item.title}
+            >
+              <input
+                type="checkbox"
+                checked={tasks[index]}
+                onChange={() =>
+                  setTasks(current =>
+                    current.map((task, itemIndex) =>
+                      itemIndex === index ? !task : task
                     )
-                  }
-                />
-                <span className="check-box">
-                  {tasks[index] && <Check size={15} />}
-                </span>
-                <span>
-                  <b>{title}</b>
-                  <small>{copy}</small>
-                </span>
-                <span className="action-index">0{index + 1}</span>
-              </label>
-            ))}
-          </div>
-          <aside className="plan-aside">
-            <div className="panel-card next-action">
-              <span className="eyebrow">REKOMENDASI SAAT INI</span>
-              <h3>
-                {calculation.hasData
-                  ? "Periksa sumber emisi terbesar"
-                  : "Bangun baseline sederhana"}
-              </h3>
-              <p>
-                {calculation.hasData
-                  ? "Buka hasil E-Calc lalu pilih aktivitas dengan kontribusi tertinggi. Satu sumber emisi adalah cukup untuk memulai percobaan pengurangan."
-                  : "Masukkan penggunaan listrik atau bahan bakar terlebih dahulu. Ini akan membuat action plan lebih relevan."}
-              </p>
-              <button
-                onClick={
-                  calculation.hasData
-                    ? () => goTo("calculator")
-                    : handleQuickStart
+                  )
                 }
-              >
-                {calculation.hasData ? "Lihat breakdown" : "Buat baseline"}{" "}
-                <ArrowRight size={17} />
-              </button>
+              />
+              <span className="check-box">
+                {tasks[index] && <Check size={15} />}
+              </span>
+              <span>
+                <b>{item.title}</b>
+                <small>{item.copy}</small>
+              </span>
+              <span className="action-domain">
+                <DomainIcon domainId={item.domainId} size={15} />
+              </span>
+            </label>
+          ))}
+        </div>
+        <aside className="plan-aside">
+          <div className="panel-card next-action">
+            <img
+              className="plan-orbit-mark"
+              src={envSustaAssets.orbitMark}
+              alt=""
+            />
+            <span className="section-kicker">FOKUS SAAT INI · FIELD NOTE</span>
+            <h3>
+              {activeDomains.length
+                ? `${activeDomains.length} domain aktif`
+                : "Tentukan domain pertama"}
+            </h3>
+            <p>
+              {activeDomains.length
+                ? "Gunakan Navigator untuk meninjau data dan bukti dari domain aktif, kemudian centang tindakan yang benar-benar mulai dikerjakan."
+                : "Pilih domain berdasarkan dampak, kewajiban, atau data yang paling siap. Karbon hanya salah satu titik awal."}
+            </p>
+            <small className="method-status">
+              STATUS · DRAFT LOKAL · PEMILIK BELUM DITETAPKAN
+            </small>
+            <button onClick={() => goTo("library")}>
+              {activeDomains.length ? "Buka fokus aktif" : "Pilih domain"}{" "}
+              <ArrowRight size={17} />
+            </button>
+          </div>
+          <div className="impact-note">
+            <TrendingDown size={21} />
+            <div>
+              <b>Urutkan tindakan dengan hati-hati.</b>
+              <p>
+                Hindari dampak, kurangi intensitas, ubah proses atau sumber
+                daya, lalu kelola dampak sisa dengan klaim yang hati-hati.
+              </p>
             </div>
-            <div className="impact-note">
-              <TrendingDown size={21} />
-              <div>
-                <b>Urutkan tindakan dengan hati-hati.</b>
-                <p>
-                  Hindari, kurangi, ganti, lalu kelola emisi sisa. Offset bukan
-                  langkah pertama.
-                </p>
-              </div>
-            </div>
-          </aside>
-        </section>
-      </>
-    );
-  };
+          </div>
+        </aside>
+      </section>
+    </>
+  );
 
   const renderLibrary = () => (
     <>
@@ -894,78 +928,144 @@ export default function Home() {
         <div>
           <span className="eyebrow">
             <span className="eyebrow-dot" />
-            KAMUS SUSTAINABILITY
+            NAVIGATOR SUSTAINABILITY
           </span>
           <h1>
-            Topik kompleks,
+            Seluruh topik.
             <br />
-            <em>pintu masuk sederhana.</em>
+            <em>Satu alur kerja.</em>
           </h1>
           <p>
-            Gunakan sebagai orientasi awal. Saat data digunakan untuk disclosure
-            atau compliance, selalu cek metodologi dan regulasi yang berlaku.
+            Pilih domain untuk melihat metric, data, bukti, dan tindakan awal.
+            Semua domain dapat menjadi fokus tanpa harus dimulai dari emisi.
           </p>
         </div>
         <div className="library-side-note">
           <b>Prinsip kerja</b>
-          <span>Gross first · source visible · claim carefully</span>
+          <span>impact first · source visible · action owned</span>
         </div>
       </section>
-      <section className="library-grid">
-        {libraryTopics.map(([title, copy, note], index) => (
-          <article className="library-card" key={title}>
-            <span>0{index + 1}</span>
+      <section className="library-grid expanded">
+        {sustainabilityDomains.map(domain => (
+          <button
+            className={`library-card ${domain.id === "carbon" ? "recommended" : ""} ${selectedDomain.id === domain.id ? "selected" : ""} ${activeDomains.includes(domain.id) ? "is-active" : ""}`}
+            key={domain.id}
+            onClick={() => setSelectedDomainId(domain.id)}
+          >
+            <span>{domain.number}</span>
             <div className="library-icon">
-              {index === 0 ? (
-                <CloudSun size={23} />
-              ) : index === 1 ? (
-                <Zap size={23} />
-              ) : index === 2 ? (
-                <LineChart size={23} />
-              ) : index === 3 ? (
-                <WalletCards size={23} />
-              ) : index === 4 ? (
-                <Waves size={23} />
-              ) : (
-                <Leaf size={23} />
-              )}
+              <DomainIcon domainId={domain.id} size={23} />
             </div>
-            <h2>{title}</h2>
-            <p>{copy}</p>
+            <h2>{domain.shortTitle}</h2>
+            <p>{domain.summary}</p>
             <div>
-              <small>{note}</small>
-              <button
-                onClick={() =>
-                  toast(
-                    `${title}: materi lanjutan akan memperluas workspace ini.`
-                  )
-                }
-                aria-label={`Buka materi ${title}`}
-              >
-                <ArrowRight size={17} />
-              </button>
+              <small>
+                {activeDomains.includes(domain.id)
+                  ? "Fokus aktif"
+                  : domain.id === "carbon"
+                    ? "Mulai dari sini"
+                    : "Pilih untuk detail"}
+              </small>
+              <ArrowRight size={17} />
             </div>
-          </article>
+          </button>
         ))}
+      </section>
+      <section
+        className={`domain-explorer ${selectedDomain.tone}`}
+        aria-live="polite"
+      >
+        <div className="explorer-head">
+          <div className="explorer-icon">
+            <DomainIcon domainId={selectedDomain.id} size={28} />
+          </div>
+          <div>
+            <span className="section-kicker">
+              DOMAIN {selectedDomain.number}
+            </span>
+            <h2>{selectedDomain.title}</h2>
+            <p>{selectedDomain.description}</p>
+          </div>
+          <button
+            className={
+              activeDomains.includes(selectedDomain.id)
+                ? "active-domain-button"
+                : "primary-action"
+            }
+            onClick={() => activateDomain(selectedDomain.id)}
+          >
+            {activeDomains.includes(selectedDomain.id)
+              ? "Fokus aktif"
+              : "Jadikan fokus"}{" "}
+            <Check size={16} />
+          </button>
+        </div>
+        <div className="explorer-grid">
+          <div>
+            <span>DATA MINIMUM</span>
+            {selectedDomain.dataPoints.map(item => (
+              <p key={item}>
+                <Check size={14} /> {item}
+              </p>
+            ))}
+          </div>
+          <div>
+            <span>METRIK AWAL</span>
+            {selectedDomain.metrics.map(item => (
+              <p key={item}>
+                <LineChart size={14} /> {item}
+              </p>
+            ))}
+          </div>
+          <div>
+            <span>BUKTI & KONTROL</span>
+            {selectedDomain.evidence.map(item => (
+              <p key={item}>
+                <Save size={14} /> {item}
+              </p>
+            ))}
+          </div>
+        </div>
+        <div className="explorer-footer">
+          <p>
+            <b>Langkah pertama:</b> {selectedDomain.firstAction}
+          </p>
+          <div>
+            <button
+              className="quiet-action"
+              onClick={() => openDomainLearning(selectedDomain.id)}
+            >
+              Pelajari domain <ArrowRight size={16} />
+            </button>
+            <button
+              className="primary-action"
+              onClick={() => activateDomain(selectedDomain.id, "plan")}
+            >
+              Buka rencana aksi <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
       </section>
       <section className="reference-strip">
         <div>
-          <span className="eyebrow">
+          <span className="section-kicker">
             UNTUK TOOLS YANG DAPAT DIPERTANGGUNGJAWABKAN
           </span>
           <h3>
-            Versi, sumber, dan bukti adalah bagian dari pengalaman pengguna.
+            Versi, sumber, bukti, dan pemilik data adalah bagian dari pengalaman
+            pengguna.
           </h3>
         </div>
         <div>
           <p>
-            Faktor emisi, GWP, batas organisasi, regulasi, serta status
-            verifikasi perlu dicatat sebagai data ber-versi. Ini menjaga hasil
-            bisa ditelusuri dan diperbarui ketika metodologi berkembang.
+            Setiap domain nantinya dapat dikembangkan menjadi data dictionary,
+            factor library, evidence trail, approval, dan disclosure workspace.
+            Draf lokal dapat diekspor untuk didiskusikan atau dipindahkan ke
+            workflow berikutnya.
           </p>
           <button
             className="quiet-action"
-            onClick={() => downloadLocalData(inputs, tasks)}
+            onClick={() => downloadLocalData(inputs, tasks, activeDomains)}
           >
             <Download size={16} /> Unduh draf lokal
           </button>
@@ -974,21 +1074,23 @@ export default function Home() {
     </>
   );
 
-  const pageMap = {
-    overview: renderOverview,
-    calculator: renderCalculator,
-    learn: renderLearn,
-    plan: renderPlan,
-    library: renderLibrary,
-  };
   const pageTitle: Record<ViewId, string> = {
     overview: "Hari ini",
-    calculator: "Kalkulator jejak karbon",
+    calculator: "Kalkulator karbon",
     learn: "Belajar sustainability",
     plan: "Rencana aksi",
-    library: "Kamus data",
+    library: "Navigator sustainability",
   };
-  const CurrentPage = pageMap[activeView];
+  const pageContent =
+    activeView === "overview"
+      ? renderOverview()
+      : activeView === "calculator"
+        ? renderCalculator()
+        : activeView === "learn"
+          ? renderLearn()
+          : activeView === "plan"
+            ? renderPlan()
+            : renderLibrary();
 
   return (
     <div className="envsusta-shell">
@@ -1037,16 +1139,15 @@ export default function Home() {
               menghubungkan layanan lain.
             </p>
           </div>
-          <button
-            className="profile-mini"
-            onClick={() =>
-              toast("Workspace pribadi aktif. Semua perubahan tersimpan lokal.")
-            }
-          >
+          <button className="profile-mini" onClick={() => goTo("library")}>
             <span>ES</span>
             <div>
               <b>Workspace pribadi</b>
-              <small>Pengguna baru</small>
+              <small>
+                {activeDomains.length
+                  ? `${activeDomains.length} fokus aktif`
+                  : "Pilih domain awal"}
+              </small>
             </div>
             <Settings2 size={16} />
           </button>
@@ -1065,7 +1166,7 @@ export default function Home() {
           <span>EnvSusta</span>
         </button>
         <button
-          onClick={() => downloadLocalData(inputs, tasks)}
+          onClick={() => downloadLocalData(inputs, tasks, activeDomains)}
           aria-label="Unduh draf lokal"
         >
           <Download size={20} />
@@ -1123,7 +1224,7 @@ export default function Home() {
             </span>
             <button
               className="top-button"
-              onClick={() => downloadLocalData(inputs, tasks)}
+              onClick={() => downloadLocalData(inputs, tasks, activeDomains)}
             >
               <Download size={16} /> Ekspor
             </button>
@@ -1136,12 +1237,10 @@ export default function Home() {
             </button>
           </div>
         </header>
-        <div className="workspace-content">
-          <CurrentPage />
-        </div>
+        <div className="workspace-content">{pageContent}</div>
       </main>
       <nav className="mobile-bottom-nav" aria-label="Navigasi cepat">
-        {navItems.slice(0, 5).map(item => {
+        {navItems.map(item => {
           const Icon = item.icon;
           return (
             <button
