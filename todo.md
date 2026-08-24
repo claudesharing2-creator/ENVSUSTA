@@ -77,6 +77,16 @@
 - [x] Menetapkan narasi dan struktur landing page literatur-first.
 - [x] Membuat hero, jalur tujuan, ringkasan domain, cara kerja, dan CTA menuju tools.
 - [x] Menguji landing page penuh pada desktop dan mobile.
-- [ ] Memvalidasi build dan menerbitkan pembaruan GitHub Pages.
+- [x] Memvalidasi build dan menerbitkan pembaruan GitHub Pages.
 
 > Audit visual: landing page mempertahankan komposisi Field Guide pada desktop dan mobile. Rute tujuan, peta domain, spesimen karbon, konteks metode, E-Calc opsional, serta CTA terbaca tanpa overflow pada layar sempit.
+
+> Verifikasi publik: deployment GitHub Pages untuk commit `802e0be` sukses. Landing page publik memuat hero, tiga titik masuk tujuan, peta domain, konteks metode E-Calc, dan CTA menuju tools.
+
+# Landing Page Mandiri
+
+- [ ] Memisahkan shell landing page dari rail/sidebar dan navigasi mobile workspace.
+- [ ] Menjaga CTA landing page agar tetap membuka Topik, Literatur, Panduan, atau E-Calc dengan benar.
+- [ ] Memvalidasi desktop dan mobile tanpa sidebar sebelum menerbitkan pembaruan.
+
+> Audit visual: desktop dan mobile kini membuka landing page secara mandiri—tanpa rail/sidebar, topbar, maupun bottom navigation workspace. Hero dan CTA tetap terbaca penuh pada kedua ukuran layar.

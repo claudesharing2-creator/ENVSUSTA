@@ -514,6 +514,17 @@ export default function Home() {
           ? renderPlan()
           : renderLibrary();
 
+  const isLanding = activeView === "overview";
+
+  if (isLanding) {
+    return <div className="landing-shell">
+      <a className="skip-link" href="#workspace-main">Lewati ke konten utama</a>
+      <main className="landing-workspace" id="workspace-main">
+        <div className="workspace-content">{pageContent}</div>
+      </main>
+    </div>;
+  }
+
   return <div className="envsusta-shell">
     <a className="skip-link" href="#workspace-main">Lewati ke konten utama</a>
     <aside className="sidebar">
