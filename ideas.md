@@ -79,3 +79,5 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Peta topik selalu menampilkan jalur baca aktif yang menautkan filter, topik terpilih, sumber, dan langkah berikutnya; katalog kartu yang seragam dihindari.
 - Canopy Teal digunakan terutama untuk aksi, seleksi, progres, dan status yang terpercaya; panel pembelajaran mengutamakan paper-sand, charcoal, serta aksen aprikot seperlunya.
 - Mark orbit terbuka diulang sebagai penanda rute baca dan konteks metode, bukan hanya sebagai dekorasi logo.
+- Jalur baca aktif menghubungkan pilihan filter, spesimen topik, konteks metode/sumber, dan langkah terapan melalui penanda orbit serta titik-titik rute yang terlihat.
+- Topik aktif diperlakukan sebagai spesimen lapangan dengan hierarki, metadata, dan cue metode yang lebih kuat daripada kartu katalog lain.

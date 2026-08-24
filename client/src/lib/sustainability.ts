@@ -12,6 +12,10 @@ export type DomainId =
   | "markets"
   | "proper";
 
+export type UserGoal = "Kepatuhan PROPER" | "Efisiensi sumber daya" | "Pengungkapan & disclosure";
+
+export const userGoalOptions: UserGoal[] = ["Kepatuhan PROPER", "Efisiensi sumber daya", "Pengungkapan & disclosure"];
+
 export type SustainabilityDomain = {
   id: DomainId;
   number: string;
@@ -26,6 +30,7 @@ export type SustainabilityDomain = {
   standards: string[];
   sectors: string[];
   difficulty: "Pemula" | "Menengah" | "Lanjutan";
+  goals: UserGoal[];
   lessonMinutes: string;
   tone: "teal" | "sand" | "apricot" | "moss";
 };
@@ -45,6 +50,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["GHG Protocol", "ISO 14064"],
     sectors: ["Semua sektor", "Manufaktur", "Jasa & perkantoran", "Transportasi"],
     difficulty: "Pemula",
+    goals: ["Efisiensi sumber daya", "Pengungkapan & disclosure", "Kepatuhan PROPER"],
     lessonMinutes: "8 menit",
     tone: "teal",
   },
@@ -62,6 +68,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["ISO 50001", "ISO 14001"],
     sectors: ["Semua sektor", "Manufaktur", "Properti & fasilitas"],
     difficulty: "Menengah",
+    goals: ["Efisiensi sumber daya", "Kepatuhan PROPER", "Pengungkapan & disclosure"],
     lessonMinutes: "7 menit",
     tone: "sand",
   },
@@ -79,6 +86,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["GRI 303", "ISO 14001"],
     sectors: ["Manufaktur", "Pangan & agribisnis", "Pertambangan & ekstraktif", "Properti & fasilitas"],
     difficulty: "Pemula",
+    goals: ["Efisiensi sumber daya", "Kepatuhan PROPER", "Pengungkapan & disclosure"],
     lessonMinutes: "6 menit",
     tone: "teal",
   },
@@ -96,6 +104,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["GRI 306", "ISO 14001"],
     sectors: ["Manufaktur", "Pangan & agribisnis", "Properti & fasilitas", "Kesehatan"],
     difficulty: "Pemula",
+    goals: ["Efisiensi sumber daya", "Kepatuhan PROPER", "Pengungkapan & disclosure"],
     lessonMinutes: "6 menit",
     tone: "apricot",
   },
@@ -113,6 +122,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["ISO 59020", "ISO 14001"],
     sectors: ["Manufaktur", "Pangan & agribisnis", "Ritel & konsumer"],
     difficulty: "Menengah",
+    goals: ["Efisiensi sumber daya", "Kepatuhan PROPER", "Pengungkapan & disclosure"],
     lessonMinutes: "7 menit",
     tone: "moss",
   },
@@ -130,6 +140,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["ISO 14040/14044", "Product LCA"],
     sectors: ["Manufaktur", "Pangan & agribisnis", "Ritel & konsumer"],
     difficulty: "Lanjutan",
+    goals: ["Efisiensi sumber daya", "Pengungkapan & disclosure"],
     lessonMinutes: "10 menit",
     tone: "sand",
   },
@@ -147,6 +158,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["TNFD LEAP", "Biodiversity Action Plan"],
     sectors: ["Pangan & agribisnis", "Pertambangan & ekstraktif", "Manufaktur"],
     difficulty: "Menengah",
+    goals: ["Kepatuhan PROPER", "Pengungkapan & disclosure"],
     lessonMinutes: "8 menit",
     tone: "moss",
   },
@@ -164,6 +176,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["ISO 14001", "SML"],
     sectors: ["Semua sektor", "Manufaktur", "Pertambangan & ekstraktif", "Properti & fasilitas"],
     difficulty: "Menengah",
+    goals: ["Kepatuhan PROPER", "Pengungkapan & disclosure", "Efisiensi sumber daya"],
     lessonMinutes: "11 menit",
     tone: "sand",
   },
@@ -181,6 +194,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["VCMI Claims Code", "ICVCM CCP"],
     sectors: ["Semua sektor", "Manufaktur", "Jasa & perkantoran"],
     difficulty: "Lanjutan",
+    goals: ["Pengungkapan & disclosure"],
     lessonMinutes: "8 menit",
     tone: "apricot",
   },
@@ -198,6 +212,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     standards: ["PROPER Beyond Compliance", "ISO 14001"],
     sectors: ["Manufaktur", "Pangan & agribisnis", "Pertambangan & ekstraktif", "Properti & fasilitas"],
     difficulty: "Menengah",
+    goals: ["Kepatuhan PROPER"],
     lessonMinutes: "12 menit",
     tone: "teal",
   },

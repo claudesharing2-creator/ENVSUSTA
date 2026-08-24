@@ -55,6 +55,17 @@
 - [x] Menambahkan metadata standar/metode, sektor, dan tingkat kesulitan pada setiap topik.
 - [x] Menerapkan pencarian teks dan filter kombinasi pada Peta Topik.
 - [x] Menyediakan status hasil, tombol reset, serta kondisi tanpa hasil.
-- [ ] Memvalidasi interaksi desktop/mobile, build, dan deployment publik.
+- [x] Memvalidasi interaksi desktop/mobile, build, dan deployment publik.
 
 > Audit visual: panel filter terbaca pada desktop dan mobile; susunan mobile menumpuk menjadi satu kolom, sedangkan topik aktif mendapatkan jalur baca orbit dan ritme kartu yang lebih editorial.
+
+> Verifikasi publik: deployment GitHub Pages untuk commit `44ed2ef` sukses. Versi publik menampilkan input pencarian, tiga filter, metadata per topik, status jumlah hasil, dan jalur baca aktif.
+
+# Filter Tujuan Pengguna
+
+- [x] Memetakan tujuan kepatuhan PROPER, efisiensi sumber daya, dan pengungkapan ke topik literatur.
+- [x] Menambahkan filter tujuan yang bekerja secara gabungan dengan seluruh filter yang sudah ada.
+- [x] Memperlihatkan tujuan pada metadata topik dan menguji kondisi hasil gabungan.
+- [ ] Memvalidasi build, responsivitas, serta deployment publik.
+
+> Audit visual: filter Tujuan pengguna tampil sebagai kontrol mandiri di desktop dan mobile. Jalur orbit aktif menghubungkan filter, kartu spesimen, metadata tujuan, sumber/metode, dan aksi penerapan tanpa mengurangi keterbacaan pada layar sempit.
