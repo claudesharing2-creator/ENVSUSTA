@@ -66,6 +66,17 @@
 - [x] Memetakan tujuan kepatuhan PROPER, efisiensi sumber daya, dan pengungkapan ke topik literatur.
 - [x] Menambahkan filter tujuan yang bekerja secara gabungan dengan seluruh filter yang sudah ada.
 - [x] Memperlihatkan tujuan pada metadata topik dan menguji kondisi hasil gabungan.
-- [ ] Memvalidasi build, responsivitas, serta deployment publik.
+- [x] Memvalidasi build, responsivitas, serta deployment publik.
 
 > Audit visual: filter Tujuan pengguna tampil sebagai kontrol mandiri di desktop dan mobile. Jalur orbit aktif menghubungkan filter, kartu spesimen, metadata tujuan, sumber/metode, dan aksi penerapan tanpa mengurangi keterbacaan pada layar sempit.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `4e79a38` sukses. Situs publik memuat filter Tujuan pengguna serta label tujuan pada kartu dan detail topik.
+
+# Landing Page EnvSusta
+
+- [x] Menetapkan narasi dan struktur landing page literatur-first.
+- [x] Membuat hero, jalur tujuan, ringkasan domain, cara kerja, dan CTA menuju tools.
+- [x] Menguji landing page penuh pada desktop dan mobile.
+- [ ] Memvalidasi build dan menerbitkan pembaruan GitHub Pages.
+
+> Audit visual: landing page mempertahankan komposisi Field Guide pada desktop dan mobile. Rute tujuan, peta domain, spesimen karbon, konteks metode, E-Calc opsional, serta CTA terbaca tanpa overflow pada layar sempit.

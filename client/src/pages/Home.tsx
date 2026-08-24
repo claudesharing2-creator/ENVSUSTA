@@ -34,8 +34,10 @@ import {
   X,
   Zap,
 } from "lucide-react";
+/* Field Guide yang Tenang: landing page mengarahkan pembaca dari tujuan ke literatur, metode, dan panduan terapan. */
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import "@/landing.css";
 import { calculateStarterFootprint, type StarterFootprintInputs } from "@/lib/calculations";
 import { envSustaAssets } from "@/lib/assets";
 import {
@@ -291,6 +293,13 @@ export default function Home() {
     setSelectedGoal("");
   };
 
+  const beginGoalRoute = (goal: UserGoal) => {
+    const firstMatch = sustainabilityDomains.find((domain) => domain.goals.includes(goal));
+    if (firstMatch) setSelectedDomainId(firstMatch.id);
+    setSelectedGoal(goal);
+    goTo("library");
+  };
+
   const openDomainLearning = (domainId: DomainId) => {
     activateDomain(domainId);
     goTo("learn");
@@ -329,15 +338,32 @@ export default function Home() {
         <div className="snapshot-stat"><strong>{completedTaskCount}/{totalTaskCount}</strong><span>langkah terapan</span></div>
       </section>
 
+      <section className="landing-goals" aria-labelledby="landing-goal-title">
+        <div className="landing-goals-intro"><span className="section-kicker">PILIH TITIK MASUK</span><h2 id="landing-goal-title">Mulai dari tujuan kerja Anda.</h2><p>Pilih tujuan, lalu persempit rute dengan standar, sektor, atau tingkat kesulitan pada Peta Topik.</p></div>
+        <div className="landing-goal-grid">
+          <button className="landing-goal-card goal-proper" onClick={() => beginGoalRoute("Kepatuhan PROPER")}><span className="goal-index">01 · COMPLIANCE</span><Building2 size={28} /><h3>Kepatuhan PROPER</h3><p>Telusuri SML, dokumen hijau, evidence, sumber daya, dan nature dari satu peta literatur.</p><span>Mulai rute <ArrowRight size={16} /></span></button>
+          <button className="landing-goal-card goal-efficiency" onClick={() => beginGoalRoute("Efisiensi sumber daya")}><span className="goal-index">02 · IMPROVEMENT</span><TrendingDown size={26} /><h3>Efisiensi sumber daya</h3><p>Mulai dari energi, air, limbah, material, dan LCA untuk mengenali peluang perbaikan.</p><span>Mulai rute <ArrowRight size={16} /></span></button>
+          <button className="landing-goal-card goal-disclosure" onClick={() => beginGoalRoute("Pengungkapan & disclosure")}><span className="goal-index">03 · DISCLOSURE</span><NotebookTabs size={26} /><h3>Pengungkapan & disclosure</h3><p>Pahami indikator, batas metode, sumber primer, dan bukti sebelum menyusun pelaporan.</p><span>Mulai rute <ArrowRight size={16} /></span></button>
+        </div>
+      </section>
+      <div className="landing-route-connector" aria-hidden="true"><i /><span>GOAL SET → TOPIC MAP → SOURCE</span><i /></div>
+
       <section className="section-head domain-head"><div><h2>Peta topik sustainability</h2><p>Pilih domain untuk memahami konsep kunci, artefak metode, rujukan bukti, dan jalur penerapan awal.</p></div><button className="text-button" onClick={() => goTo("library")}>Buka topik <ArrowRight size={16} /></button></section>
       <section className="domain-overview-grid">
         {sustainabilityDomains.map((domain) => (
           <button key={domain.id} className={`domain-tile ${domain.tone} ${domain.id === "carbon" ? "recommended" : ""} ${activeDomains.includes(domain.id) ? "is-active" : ""}`} onClick={() => { setSelectedDomainId(domain.id); goTo("library"); }}>
             <div className="domain-tile-top"><span>{domain.number}</span><DomainIcon domainId={domain.id} size={20} /></div>
             <div><h3>{domain.shortTitle}</h3><p>{domain.summary}</p></div>
+            {domain.id === "carbon" && <span className="domain-specimen-note">FIELD SPECIMEN · GHG PROTOCOL · SOURCE VISIBLE</span>}
             <div className="domain-tile-bottom"><small>{activeDomains.includes(domain.id) ? "Topik ditandai" : domain.id === "carbon" ? "Direkomendasikan untuk mulai" : "Buka topik"}</small><ArrowDownRight size={17} /></div>
           </button>
         ))}
+      </section>
+      <div className="landing-route-connector route-after-map" aria-hidden="true"><i /><span>SELECTED TOPIC → METHOD NOTE → PRACTICE</span><i /></div>
+
+      <section className="landing-fieldwork" aria-labelledby="fieldwork-title">
+        <div className="landing-fieldwork-photo"><img src={envSustaAssets.learningAtlas} alt="Peta visual topik energi, air, material, emisi, dan nature" /><div><span>FIELD NOTE</span><b>Context comes first.</b><small>Metode selalu dibaca bersama batas penggunaannya.</small></div></div>
+        <div className="landing-fieldwork-copy"><span className="section-kicker">SEBELUM MENGUKUR</span><h2 id="fieldwork-title">Pahami konteksnya, lalu pilih metodenya.</h2><p>Setiap modul menghubungkan konsep dengan artefak kerja dan sumber metode. Saat siap menerapkan, panduan terapan membantu menerjemahkannya menjadi langkah, bukti, dan output.</p><div className="landing-note-list"><span><i>01</i> Konsep yang perlu dipahami</span><span><i>02</i> Metode dan batas penggunaan</span><span><i>03</i> Bukti dan langkah penerapan</span></div><button className="quiet-action" onClick={() => goTo("learn")}>Lihat cara membaca literatur <ArrowRight size={16} /></button></div>
       </section>
 
       <section className="two-column-section">
@@ -356,6 +382,15 @@ export default function Home() {
           <div className="signal-footer"><span><Save size={14} /> {savedAt}</span><button onClick={() => goTo("library")}>Jelajahi topik <ArrowRight size={15} /></button></div>
         </div>
       </section>
+
+      <section className="landing-method-band">
+        <div><span className="section-kicker">METODE SAAT DIBUTUHKAN</span><h2>Perhitungan bukan titik awal semua topik.</h2><p>E-Calc tersedia sebagai worksheet ilustratif pada materi karbon. Ia membantu memahami alur activity data dan faktor emisi, bukan menggantikan inventaris formal atau sumber primer.</p></div>
+        <aside><img src={envSustaAssets.orbitMark} alt="" /><div><span>OPTIONAL WORKSHEET</span><b>E-Calc</b><small>Metode demo untuk materi karbon</small></div><button className="primary-action" onClick={() => goTo("calculator")}>Buka E-Calc <ArrowRight size={16} /></button></aside>
+      </section>
+
+      <section className="landing-cta" aria-labelledby="landing-cta-title"><div><span className="section-kicker">BUKA RUTE BACA</span><h2 id="landing-cta-title">Temukan topik yang paling dekat dengan pekerjaan Anda.</h2><p>Mulai dari tujuan, lanjutkan ke sumber dan metode, lalu gunakan panduan terapan ketika Anda membutuhkannya.</p></div><div><button className="primary-action" onClick={() => goTo("library")}>Jelajahi peta topik <ArrowDownRight size={17} /></button><button className="quiet-action" onClick={() => goTo("plan")}>Buka panduan terapan <ArrowRight size={16} /></button></div></section>
+
+      <footer className="landing-footer"><div className="landing-footer-brand"><img src={envSustaAssets.orbitMark} alt="Mark orbit terbuka EnvSusta" /><div><b>EnvSusta</b><span>Literatur sustainability, tanpa kehilangan arah.</span></div></div><p>Local-first. Baca konteks, telusuri metode, simpan catatan di perangkat Anda.</p><button className="text-button" onClick={() => goTo("library")}>Masuk ke literatur <ArrowRight size={16} /></button></footer>
     </>
   );
 

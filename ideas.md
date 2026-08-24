@@ -81,3 +81,14 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Mark orbit terbuka diulang sebagai penanda rute baca dan konteks metode, bukan hanya sebagai dekorasi logo.
 - Jalur baca aktif menghubungkan pilihan filter, spesimen topik, konteks metode/sumber, dan langkah terapan melalui penanda orbit serta titik-titik rute yang terlihat.
 - Topik aktif diperlakukan sebagai spesimen lapangan dengan hierarki, metadata, dan cue metode yang lebih kuat daripada kartu katalog lain.
+
+## Landing Page EnvSusta
+
+**Design Read:** Landing page literatur sustainability untuk pengguna pemula hingga praktisi, dengan bahasa editorial yang tenang dan sistem contemporary field-journal.
+
+**Design dials:** `DESIGN_VARIANCE: 5`, `MOTION_INTENSITY: 3`, `VISUAL_DENSITY: 4`.
+
+Landing page memakai urutan rute: nilai produk → tujuan pengguna → konteks membaca → peta topik → metode opsional → CTA. Rute kepatuhan PROPER, efisiensi sumber daya, dan pengungkapan dibuat sebagai titik masuk asimetris yang membuka filter nyata, bukan sekadar klaim fitur. Aset hero dan atlas yang telah ada digunakan sebagai konteks visual utama; kartu hanya dipakai untuk titik keputusan yang dapat diklik.
+
+- Jalur baca ditampilkan secara eksplisit di antara tujuan, peta topik, sumber/metode, dan praktik melalui garis titik serta orbit terbuka.
+- Karbon diperlakukan sebagai spesimen lapangan awal yang menunjukkan cue metode dan sumber, sementara domain lain berfungsi sebagai waypoint pendukung.
