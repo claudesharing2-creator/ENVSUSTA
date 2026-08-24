@@ -76,3 +76,6 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Gunakan sudut 18–22 px hanya pada kartu besar; kontrol kecil memakai radius 10–12 px.
 - Pastikan semua teks kontras terhadap background aktualnya; background terang memakai teks charcoal.
 - Setiap halaman/komponen yang dibuat mencantumkan komentar singkat tentang filosofi Field Guide yang Tenang di bagian atas file.
+- Peta topik selalu menampilkan jalur baca aktif yang menautkan filter, topik terpilih, sumber, dan langkah berikutnya; katalog kartu yang seragam dihindari.
+- Canopy Teal digunakan terutama untuk aksi, seleksi, progres, dan status yang terpercaya; panel pembelajaran mengutamakan paper-sand, charcoal, serta aksen aprikot seperlunya.
+- Mark orbit terbuka diulang sebagai penanda rute baca dan konteks metode, bukan hanya sebagai dekorasi logo.

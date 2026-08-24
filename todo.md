@@ -49,3 +49,12 @@
 - [x] Menguji narasi dan navigasi baru pada desktop serta mobile lalu memperbarui deployment.
 
 > Verifikasi 24 Agustus 2026: Tampilan desktop dan mobile menampilkan Topik, Literatur, Panduan terapan, serta Metode hitung sebagai alur yang berbeda. Tidak ada label “data tersedia”; E-Calc dijelaskan sebagai contoh metode opsional dan modul Literatur menyediakan rujukan primer per topik.
+
+# Pencarian dan Filter Literatur
+
+- [x] Menambahkan metadata standar/metode, sektor, dan tingkat kesulitan pada setiap topik.
+- [x] Menerapkan pencarian teks dan filter kombinasi pada Peta Topik.
+- [x] Menyediakan status hasil, tombol reset, serta kondisi tanpa hasil.
+- [ ] Memvalidasi interaksi desktop/mobile, build, dan deployment publik.
+
+> Audit visual: panel filter terbaca pada desktop dan mobile; susunan mobile menumpuk menjadi satu kolom, sedangkan topik aktif mendapatkan jalur baca orbit dan ritme kartu yang lebih editorial.

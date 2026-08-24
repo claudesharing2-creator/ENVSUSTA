@@ -22,6 +22,7 @@ import {
   Recycle,
   RotateCcw,
   Route,
+  Search,
   Save,
   Settings2,
   Sparkles,
@@ -57,6 +58,8 @@ type LiteratureSource = {
   note: string;
   href?: string;
 };
+
+type Difficulty = "Pemula" | "Menengah" | "Lanjutan";
 
 const initialInputs: CalcInputs = { electricity: "", diesel: "", transport: "", waste: "" };
 const domainIcons: Record<DomainId, typeof Leaf> = {
@@ -204,6 +207,10 @@ export default function Home() {
   const [activeDomains, setActiveDomains] = useState<DomainId[]>(workspaceSeed.activeDomains);
   const [selectedDomainId, setSelectedDomainId] = useState<DomainId>(workspaceSeed.activeDomains[0] ?? "carbon");
   const [showMethod, setShowMethod] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStandard, setSelectedStandard] = useState("");
+  const [selectedSector, setSelectedSector] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "">("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -222,6 +229,24 @@ export default function Home() {
   const completedTaskCount = Object.values(playbookProgress).flat().filter(Boolean).length;
   const totalTaskCount = actionPlaybooks.reduce((total, playbook) => total + playbook.steps.length, 0);
   const completion = Math.round((completedTaskCount / totalTaskCount) * 100);
+  const standardOptions = useMemo(() => Array.from(new Set(sustainabilityDomains.flatMap((domain) => domain.standards))).sort(), []);
+  const sectorOptions = useMemo(() => Array.from(new Set(sustainabilityDomains.flatMap((domain) => domain.sectors))).sort(), []);
+  const filteredDomains = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase("id-ID");
+    return sustainabilityDomains.filter((domain) => {
+      const searchable = [domain.title, domain.shortTitle, domain.summary, domain.description, ...domain.standards, ...domain.sectors, domain.difficulty].join(" ").toLocaleLowerCase("id-ID");
+      return (!query || searchable.includes(query))
+        && (!selectedStandard || domain.standards.includes(selectedStandard))
+        && (!selectedSector || domain.sectors.includes(selectedSector))
+        && (!selectedDifficulty || domain.difficulty === selectedDifficulty);
+    });
+  }, [searchQuery, selectedStandard, selectedSector, selectedDifficulty]);
+  const hasActiveFilters = Boolean(searchQuery || selectedStandard || selectedSector || selectedDifficulty);
+
+  useEffect(() => {
+    if (filteredDomains.length && !filteredDomains.some((domain) => domain.id === selectedDomainId)) setSelectedDomainId(filteredDomains[0].id);
+  }, [filteredDomains, selectedDomainId]);
+
   const changeInput = (key: keyof CalcInputs) => (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.currentTarget.value;
     setInputs((current) => ({ ...current, [key]: nextValue }));
@@ -252,6 +277,13 @@ export default function Home() {
     setActiveDomains([]);
     setSelectedDomainId("carbon");
     toast("Penanda topik, langkah playbook, dan worksheet E-Calc telah dikosongkan.");
+  };
+
+  const resetLiteratureFilters = () => {
+    setSearchQuery("");
+    setSelectedStandard("");
+    setSelectedSector("");
+    setSelectedDifficulty("");
   };
 
   const openDomainLearning = (domainId: DomainId) => {
@@ -408,13 +440,24 @@ export default function Home() {
   const renderLibrary = () => (
     <>
       <section className="page-intro library-intro"><div><span className="eyebrow"><span className="eyebrow-dot" />PETA TOPIK SUSTAINABILITY</span><h1>Seluruh topik.<br /><em>Satu peta literatur.</em></h1><p>Pilih topik untuk melihat konsep, artefak metode, rujukan kerja, dan jalur penerapan awal. Anda tidak perlu memulai dari emisi.</p><span className="route-stamp">10 TOPIC MODULES · SOURCE VISIBLE · CONTEXT FIRST</span></div><div className="library-side-note"><img src={envSustaAssets.orbitMark} alt="" /><b>Prinsip pembacaan</b><span>context first · source visible · method bounded</span></div></section>
-      <section className="library-grid expanded">{sustainabilityDomains.map((domain) => <button className={`library-card ${domain.id === "carbon" ? "recommended" : ""} ${selectedDomain.id === domain.id ? "selected" : ""} ${activeDomains.includes(domain.id) ? "is-active" : ""}`} key={domain.id} onClick={() => setSelectedDomainId(domain.id)}><span>{domain.number}</span><div className="library-icon"><DomainIcon domainId={domain.id} size={23} /></div><h2>{domain.shortTitle}</h2><p>{domain.summary}</p><div><small>{activeDomains.includes(domain.id) ? "Topik ditandai" : domain.id === "carbon" ? "Mulai dari sini" : "Buka ringkasan"}</small><ArrowRight size={17} /></div></button>)}</section>
+      <section className="literature-filter-panel" aria-label="Cari dan filter literatur">
+        <div className="filter-panel-head"><div><span className="section-kicker">CARI LITERATUR</span><h2>Temukan materi yang relevan.</h2></div><p>Pilih kombinasi standar, sektor, atau tingkat kesulitan. Hasil diperbarui saat Anda menyaringnya.</p><div className="filter-route-note"><img src={envSustaAssets.orbitMark} alt="" /><div><span>READING PATH</span><b>{selectedDomain.shortTitle}</b><small>topik aktif untuk ditelusuri</small></div></div></div>
+        <div className="filter-controls">
+          <label className="filter-field filter-search"><span>Kata kunci</span><div><Search size={17} /><input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.currentTarget.value)} placeholder="Contoh: LCA, air, PROPER" aria-label="Cari topik literatur" /></div></label>
+          <label className="filter-field"><span>Standar / metode</span><select value={selectedStandard} onChange={(event) => setSelectedStandard(event.currentTarget.value)} aria-label="Filter standar atau metode"><option value="">Semua standar</option>{standardOptions.map((standard) => <option key={standard} value={standard}>{standard}</option>)}</select></label>
+          <label className="filter-field"><span>Sektor industri</span><select value={selectedSector} onChange={(event) => setSelectedSector(event.currentTarget.value)} aria-label="Filter sektor industri"><option value="">Semua sektor</option>{sectorOptions.map((sector) => <option key={sector} value={sector}>{sector}</option>)}</select></label>
+          <label className="filter-field"><span>Tingkat kesulitan</span><select value={selectedDifficulty} onChange={(event) => setSelectedDifficulty(event.currentTarget.value as Difficulty | "")} aria-label="Filter tingkat kesulitan"><option value="">Semua tingkat</option><option value="Pemula">Pemula</option><option value="Menengah">Menengah</option><option value="Lanjutan">Lanjutan</option></select></label>
+        </div>
+        <div className="filter-status" aria-live="polite"><span><b>{filteredDomains.length}</b> dari {sustainabilityDomains.length} topik ditemukan</span><span className="filter-journey">OPEN ORBIT · FILTER → TOPIC → SOURCE</span>{hasActiveFilters && <button onClick={resetLiteratureFilters}><X size={14} /> Reset filter</button>}</div>
+      </section>
+      {filteredDomains.length ? <><section className="library-grid expanded">{filteredDomains.map((domain) => <button className={`library-card ${domain.id === "carbon" ? "recommended" : ""} ${selectedDomain.id === domain.id ? "selected featured" : ""} ${activeDomains.includes(domain.id) ? "is-active" : ""}`} key={domain.id} onClick={() => setSelectedDomainId(domain.id)}><span>{domain.number}</span><div className="library-icon"><DomainIcon domainId={domain.id} size={23} /></div><h2>{domain.shortTitle}</h2><p>{domain.summary}</p><div className="library-meta"><span>{domain.difficulty}</span><span>{domain.standards[0]}</span></div><div><small>{activeDomains.includes(domain.id) ? "Topik ditandai" : domain.id === "carbon" ? "Mulai dari sini" : "Buka ringkasan"}</small><ArrowRight size={17} /></div></button>)}</section>
       <section className={`domain-explorer ${selectedDomain.tone}`} aria-live="polite">
         <div className="explorer-head"><div className="explorer-icon"><DomainIcon domainId={selectedDomain.id} size={28} /></div><div><span className="section-kicker">TOPIK {selectedDomain.number}</span><h2>{selectedDomain.title}</h2><p>{selectedDomain.description}</p><span className="explorer-source-stamp">METHOD NOTE · CONCEPT → ARTIFACT → PRACTICE</span></div><button className={activeDomains.includes(selectedDomain.id) ? "active-domain-button" : "primary-action"} onClick={() => activateDomain(selectedDomain.id)}>{activeDomains.includes(selectedDomain.id) ? "Topik ditandai" : "Tandai topik"} <Check size={16} /></button></div>
+        <div className="domain-metadata"><div><span>TINGKAT</span><b>{selectedDomain.difficulty}</b></div><div><span>STANDAR / METODE</span><p>{selectedDomain.standards.join(" · ")}</p></div><div><span>SEKTOR</span><p>{selectedDomain.sectors.join(" · ")}</p></div></div>
         <div className="explorer-grid"><div><span>ARTEFAK METODE</span>{selectedDomain.dataPoints.map((item) => <p key={item}><Check size={14} /> {item}</p>)}</div><div><span>KONSEP & INDIKATOR</span>{selectedDomain.metrics.map((item) => <p key={item}><LineChart size={14} /> {item}</p>)}</div><div><span>RUJUKAN & BUKTI KERJA</span>{selectedDomain.evidence.map((item) => <p key={item}><Save size={14} /> {item}</p>)}</div></div>
         <div className="explorer-footer"><p><b>Jika akan diterapkan:</b> {selectedDomain.firstAction}</p><div><button className="quiet-action" onClick={() => openDomainLearning(selectedDomain.id)}>Baca materi <ArrowRight size={16} /></button><button className="primary-action" onClick={() => activateDomain(selectedDomain.id, "plan")}>Buka panduan terapan <ArrowRight size={16} /></button></div></div>
       </section>
-      <section className="reference-strip"><div><span className="section-kicker">BATAS DAN SUMBER METODE</span><h3>Setiap materi perlu dibaca bersama konteks, versi metode, dan batas penggunaannya.</h3></div><div><p>EnvSusta menyimpan penanda topik, progres panduan, dan worksheet metode secara lokal. Untuk kerja formal, selalu gunakan sumber primer, ketentuan sektor, serta versi standar yang berlaku.</p><button className="quiet-action" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)}><Download size={16} /> Unduh catatan literatur</button></div></section>
+      <section className="reference-strip"><div><span className="section-kicker">BATAS DAN SUMBER METODE</span><h3>Setiap materi perlu dibaca bersama konteks, versi metode, dan batas penggunaannya.</h3></div><div><p>EnvSusta menyimpan penanda topik, progres panduan, dan worksheet metode secara lokal. Untuk kerja formal, selalu gunakan sumber primer, ketentuan sektor, serta versi standar yang berlaku.</p><button className="quiet-action" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)}><Download size={16} /> Unduh catatan literatur</button></div></section></> : <section className="empty-literature-state"><Search size={22} /><span className="section-kicker">TIDAK ADA HASIL</span><h2>Belum ada materi yang cocok.</h2><p>Coba kata kunci lain atau kosongkan satu atau beberapa filter untuk memperluas peta literatur.</p><button className="primary-action" onClick={resetLiteratureFilters}>Kosongkan filter <X size={16} /></button></section>}
     </>
   );
 
