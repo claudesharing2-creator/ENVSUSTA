@@ -66,9 +66,11 @@ const domainIcons: Record<DomainId, typeof Leaf> = {
   water: Waves,
   waste: Recycle,
   materials: Factory,
+  lca: Route,
   nature: Leaf,
   esg: LineChart,
   markets: WalletCards,
+  proper: NotebookTabs,
 };
 
 const navItems: {
@@ -258,8 +260,11 @@ export default function Home() {
     activeDomains.includes("water"),
     activeDomains.includes("waste"),
     activeDomains.includes("materials"),
+    activeDomains.includes("lca"),
     activeDomains.includes("nature"),
+    activeDomains.includes("proper"),
   ].filter(Boolean).length;
+  const maxDataSignals = 8;
 
   const changeInput =
     (key: keyof CalcInputs) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -382,7 +387,9 @@ export default function Home() {
           <span>fokus aktif</span>
         </div>
         <div className="snapshot-stat">
-          <strong>{dataSignals}/6</strong>
+          <strong>
+            {dataSignals}/{maxDataSignals}
+          </strong>
           <span>sinyal data awal</span>
         </div>
         <div className="snapshot-stat">
@@ -774,15 +781,21 @@ export default function Home() {
             <em>Lalu pilih aksi.</em>
           </h1>
           <p>
-            Delapan modul memperkenalkan cara berpikir, data, metrik, dan bukti
-            yang diperlukan sebelum masuk ke standar atau disclosure yang lebih
-            kompleks.
+            {sustainabilityDomains.length} modul memperkenalkan cara berpikir,
+            data, metrik, bukti, dan readiness yang diperlukan sebelum masuk ke
+            standar atau disclosure yang lebih kompleks.
           </p>
+          <span className="route-stamp">
+            OPEN ORBIT ROUTE · MODULE → EVIDENCE → ACTION
+          </span>
         </div>
         <div className="learning-stat">
+          <img src={envSustaAssets.orbitMark} alt="" />
           <span>MODUL TERSEDIA</span>
-          <strong>08</strong>
-          <p>dari karbon sampai nature dan carbon market.</p>
+          <strong>
+            {String(sustainabilityDomains.length).padStart(2, "0")}
+          </strong>
+          <p>dari karbon, LCA, SML, hingga PROPER readiness.</p>
         </div>
       </section>
       <section className="learning-layout">
@@ -885,6 +898,9 @@ export default function Home() {
             pengumpulan bukti, hingga output kerja yang dapat direview. Pilih
             satu domain dan selesaikan langkahnya secara bertahap.
           </p>
+          <span className="route-stamp">
+            TRACE 01 · SOURCE → METHOD → OWNER → REVIEW
+          </span>
         </div>
         <div className="plan-orbit">
           <strong>{completion}%</strong>
@@ -899,11 +915,10 @@ export default function Home() {
               Mulai dari dampak atau data yang paling dekat dengan operasi Anda.
             </p>
           </div>
-          {actionPlaybooks.map(playbook => {
-            const domain =
-              sustainabilityDomains.find(
-                item => item.id === playbook.domainId
-              ) ?? sustainabilityDomains[0];
+          {sustainabilityDomains.map(domain => {
+            const playbook =
+              actionPlaybooks.find(item => item.domainId === domain.id) ??
+              actionPlaybooks[0];
             const done =
               playbookProgress[playbook.domainId].filter(Boolean).length;
             return (
@@ -1044,8 +1059,12 @@ export default function Home() {
             Pilih domain untuk melihat metric, data, bukti, dan tindakan awal.
             Semua domain dapat menjadi fokus tanpa harus dimulai dari emisi.
           </p>
+          <span className="route-stamp">
+            FIELD ROUTE · 10 DOMAIN · 1 EVIDENCE TRAIL
+          </span>
         </div>
         <div className="library-side-note">
+          <img src={envSustaAssets.orbitMark} alt="" />
           <b>Prinsip kerja</b>
           <span>impact first · source visible · action owned</span>
         </div>
@@ -1090,6 +1109,9 @@ export default function Home() {
             </span>
             <h2>{selectedDomain.title}</h2>
             <p>{selectedDomain.description}</p>
+            <span className="explorer-source-stamp">
+              METHOD NOTE · DATA → METRIC → EVIDENCE
+            </span>
           </div>
           <button
             className={

@@ -1910,6 +1910,102 @@ img {
   display: none;
 }
 
+/* Field Guide yang Tenang: orbit dan stamp menjadi jejak metode yang menghubungkan materi, bukti, dan aksi. */
+.route-stamp,
+.explorer-source-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 17px;
+  color: var(--teal);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+}
+.route-stamp::before {
+  content: "";
+  width: 30px;
+  height: 8px;
+  background: radial-gradient(circle, var(--teal) 1.3px, transparent 1.6px) 0
+    50% / 8px 8px repeat-x;
+  opacity: 0.72;
+}
+.route-stamp::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--teal);
+  border-left-color: transparent;
+  border-radius: 50%;
+  transform: rotate(-36deg);
+}
+.learning-stat {
+  position: relative;
+  overflow: hidden;
+}
+.learning-stat > img {
+  position: absolute;
+  right: -24px;
+  bottom: -24px;
+  width: 96px;
+  height: 96px;
+  opacity: 0.14;
+  transform: rotate(26deg);
+}
+.learning-stat > span,
+.learning-stat > strong,
+.learning-stat > p {
+  position: relative;
+  z-index: 1;
+}
+.library-side-note {
+  position: relative;
+  overflow: hidden;
+}
+.library-side-note > img {
+  position: absolute;
+  right: -20px;
+  top: -20px;
+  width: 74px;
+  height: 74px;
+  opacity: 0.13;
+  transform: rotate(24deg);
+}
+.library-side-note b,
+.library-side-note span {
+  position: relative;
+  z-index: 1;
+}
+.explorer-source-stamp {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(14, 118, 110, 0.28);
+}
+.explorer-source-stamp::before {
+  content: "SOURCE";
+  padding: 3px 5px;
+  border: 1px solid rgba(14, 118, 110, 0.28);
+  border-radius: 4px;
+  background: rgba(255, 253, 248, 0.58);
+  font-size: 7px;
+}
+
+@media (max-width: 840px) {
+  .route-stamp {
+    max-width: 260px;
+    font-size: 7px;
+  }
+  .learning-stat > img {
+    width: 80px;
+    height: 80px;
+  }
+  .explorer-source-stamp {
+    max-width: 260px;
+  }
+}
+
 @media (max-width: 840px) {
   .envsusta-shell .playbook-layout {
     display: grid !important;

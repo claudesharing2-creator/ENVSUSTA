@@ -6,9 +6,11 @@ export type DomainId =
   | "water"
   | "waste"
   | "materials"
+  | "lca"
   | "nature"
   | "esg"
-  | "markets";
+  | "markets"
+  | "proper";
 
 export type SustainabilityDomain = {
   id: DomainId;
@@ -37,7 +39,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
       "Inventaris GRK membantu melihat emisi Scope 1, Scope 2, dan Scope 3 secara terpisah. Untuk pemula, yang paling penting adalah sumber data, periode, unit, dan asumsi yang dapat ditelusuri.",
     firstAction:
       "Catat listrik, bahan bakar, perjalanan, dan limbah pada periode yang sama.",
-    metrics: ["tCO₂e gross", "intensitas emisi", "cakupan Scope 1–3"],
+    metrics: ["tCO₂e gross", "tCO₂e/TOE intensity", "cakupan Scope 1–3"],
     dataPoints: [
       "Tagihan listrik",
       "Bukti pembelian bahan bakar",
@@ -63,7 +65,11 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
       "Manajemen energi menghubungkan pemakaian energi dengan aktivitas operasional. Baseline, EnPI, dan penggunaan energi signifikan membantu tim menemukan peluang perbaikan tanpa menebak-nebak.",
     firstAction:
       "Susun baseline kWh dan tandai proses atau lokasi dengan penggunaan terbesar.",
-    metrics: ["kWh", "EnPI", "penggunaan energi signifikan"],
+    metrics: [
+      "GJ status/absolut",
+      "GJ/TOE intensity",
+      "penggunaan energi signifikan",
+    ],
     dataPoints: [
       "Tagihan energi",
       "Jam operasi",
@@ -89,7 +95,11 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
       "Air perlu dikelola sebagai aliran fisik dan risiko lokal. Mulailah dengan memahami dari mana air berasal, ke mana air digunakan, apakah ada efluen, dan bukti pemantauan yang tersedia.",
     firstAction:
       "Buat water balance sederhana untuk satu lokasi atau satu proses utama.",
-    metrics: ["m³ withdrawal", "m³ discharge", "intensitas air"],
+    metrics: [
+      "m³ withdrawal",
+      "m³/TOE intensity",
+      "m³ discharge dan beban pencemar",
+    ],
     dataPoints: [
       "Tagihan atau meter air",
       "Sumber air",
@@ -111,7 +121,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
       "Pengelolaan limbah bukan hanya berat total. Penting untuk memahami jenis limbah, hierarki pengelolaan, limbah B3, jalur pengangkutan, serta pengendalian polusi yang relevan.",
     firstAction:
       "Pisahkan tiga aliran limbah terbesar dan catat jalur pengelolaannya.",
-    metrics: ["ton limbah", "tingkat diversion", "limbah B3"],
+    metrics: ["ton LB3 dan LNB3", "ton/TOE intensity", "tingkat diversion"],
     dataPoints: [
       "Timbangan atau manifest",
       "Jenis limbah",
@@ -149,8 +159,38 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     tone: "moss",
   },
   {
-    id: "nature",
+    id: "lca",
     number: "06",
+    title: "LCA & produk",
+    shortTitle: "LCA",
+    summary:
+      "Telusuri dampak produk dari cradle-to-grave untuk menemukan hotspot dan peluang perbaikan yang terukur.",
+    description:
+      "Life Cycle Assessment atau LCA menghubungkan tujuan studi, lingkup, inventori input-output-emisi, penilaian dampak, interpretasi, dan tinjauan kritis. Ini melampaui carbon footprint tunggal.",
+    firstAction:
+      "Pilih satu produk atau proses dan tuliskan functional unit, batas sistem, serta alasan studi LCA.",
+    metrics: [
+      "functional unit",
+      "cakupan data terukur",
+      "kategori dampak prioritas",
+    ],
+    dataPoints: [
+      "Unit proses",
+      "Input dan output",
+      "Emisi dan limbah",
+      "Sumber data primer/sekunder",
+    ],
+    evidence: [
+      "Goal & scope",
+      "Life cycle inventory",
+      "Asumsi dan data quality log",
+    ],
+    lessonMinutes: "10 menit",
+    tone: "sand",
+  },
+  {
+    id: "nature",
+    number: "07",
     title: "Nature & biodiversity",
     shortTitle: "Nature",
     summary:
@@ -159,37 +199,54 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
       "Nature mencakup keterkaitan organisasi dengan lahan, air, hutan, habitat, dan spesies. Fokus awalnya adalah lokasi, rantai pasok, tekanan utama, dan langkah menghindari atau memulihkan dampak.",
     firstAction:
       "Tandai lokasi dan pemasok yang paling bergantung pada lahan, air, atau bahan berbasis alam.",
-    metrics: ["lokasi prioritas", "tekanan ekosistem", "cakupan pemasok"],
+    metrics: [
+      "lokasi prioritas",
+      "status Biodiversity Action Plan",
+      "cakupan monitoring flora-fauna",
+    ],
     dataPoints: [
       "Koordinat lokasi",
       "Komoditas utama",
       "Peta pemasok",
-      "Area restorasi",
+      "Baseline flora-fauna",
     ],
-    evidence: ["Batas lokasi", "Metode screening", "Catatan konsultasi"],
+    evidence: [
+      "Batas lokasi",
+      "Biodiversity Action Plan",
+      "Catatan konsultasi dan monitoring",
+    ],
     lessonMinutes: "8 menit",
     tone: "moss",
   },
   {
     id: "esg",
-    number: "07",
-    title: "ESG, risiko & disclosure",
-    shortTitle: "ESG",
+    number: "08",
+    title: "SML, governance & disclosure",
+    shortTitle: "SML",
     summary:
-      "Hubungkan isu lingkungan material dengan governance, KPI, risiko, target, dan bukti.",
+      "Kelola kebijakan, ASDAM, audit, RTM, tindakan perbaikan, dan bukti yang siap direview.",
     description:
-      "Disclosure yang berguna dimulai dari isu yang paling material bagi organisasi dan stakeholder. Data perlu memiliki pemilik, definisi, periode, bukti, serta proses review sebelum dibagikan.",
+      "Sistem Manajemen Lingkungan atau SML menghubungkan aspek-dampak, pengendalian dokumen, kompetensi, audit, ketidaksesuaian, tindakan perbaikan dan pencegahan, serta tinjauan manajemen.",
     firstAction:
-      "Pilih tiga isu lingkungan yang paling relevan dan tetapkan pemilik data untuk masing-masing.",
-    metrics: ["topik material", "cakupan KPI", "status bukti"],
-    dataPoints: ["Daftar KPI", "Pemilik data", "Target", "Risiko dan peluang"],
-    evidence: ["Data dictionary", "Approval trail", "Referensi framework"],
-    lessonMinutes: "9 menit",
+      "Pilih satu temuan atau aspek lingkungan, lalu catat pemilik, tindakan perbaikan, bukti, dan tanggal review.",
+    metrics: ["status ASDAM", "temuan audit tertutup", "cakupan evidence"],
+    dataPoints: [
+      "Rapor PROPER",
+      "Temuan audit",
+      "Pemilik tindakan",
+      "Status kompetensi",
+    ],
+    evidence: [
+      "Kebijakan dan ASDAM",
+      "RTM dan CAPA",
+      "Kontrol dokumen dan audit",
+    ],
+    lessonMinutes: "11 menit",
     tone: "sand",
   },
   {
     id: "markets",
-    number: "08",
+    number: "09",
     title: "Carbon market & claims",
     shortTitle: "Carbon market",
     summary:
@@ -212,6 +269,36 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     ],
     lessonMinutes: "8 menit",
     tone: "apricot",
+  },
+  {
+    id: "proper",
+    number: "10",
+    title: "PROPER readiness & innovation",
+    shortTitle: "PROPER",
+    summary:
+      "Satukan dokumen hijau, DRKPL, laporan teknis, inovasi, kompetensi, dan evidence lintas domain.",
+    description:
+      "Kesiapan PROPER Beyond Compliance membutuhkan portofolio bukti yang konsisten: dokumen hijau, data terverifikasi, pelaporan dampak, program inovasi, kerja sama, kompetensi, dan roadmap pembaruan tahunan.",
+    firstAction:
+      "Buat daftar evidence lintas domain dan tandai dokumen yang perlu diperbarui, diverifikasi, atau diberi pemilik.",
+    metrics: [
+      "kesiapan evidence",
+      "status dokumen hijau",
+      "program inovasi tervalidasi",
+    ],
+    dataPoints: [
+      "DRKPL",
+      "Renstra dan Renja",
+      "Laporan teknis",
+      "Training matrix dan kontrak kerja sama",
+    ],
+    evidence: [
+      "Register dokumen hijau",
+      "Verifikasi dan benchmarking",
+      "Laporan inovasi atau CIP",
+    ],
+    lessonMinutes: "12 menit",
+    tone: "teal",
   },
 ];
 
@@ -242,6 +329,11 @@ export const sustainabilityActionTracks = [
     copy: "Lihat peluang mengurangi input baru, scrap, atau material tak terpakai.",
   },
   {
+    domainId: "lca" as DomainId,
+    title: "Tentukan goal dan scope LCA",
+    copy: "Pilih produk, functional unit, batas cradle-to-grave, serta kualitas data yang dibutuhkan.",
+  },
+  {
     domainId: "nature" as DomainId,
     title: "Screening lokasi dan supply chain",
     copy: "Identifikasi ketergantungan atau dampak pada ekosistem dan lahan.",
@@ -255,6 +347,11 @@ export const sustainabilityActionTracks = [
     domainId: "markets" as DomainId,
     title: "Pisahkan ledger unit karbon",
     copy: "Catat credit atau allowance tanpa mengurangi angka gross inventory.",
+  },
+  {
+    domainId: "proper" as DomainId,
+    title: "Buat register dokumen hijau",
+    copy: "Tautkan data, laporan, validasi, kompetensi, dan program inovasi pada satu evidence register.",
   },
 ];
 
@@ -711,6 +808,119 @@ export const actionPlaybooks: ActionPlaybook[] = [
         output: "Claim-ready pack.",
         doneWhen:
           "Tidak ada klaim publik tanpa pemilik, bukti, dan persetujuan.",
+      },
+    ],
+  },
+  {
+    domainId: "lca",
+    role: "Tim lingkungan, produk, operasi, engineering, atau analis LCA",
+    goal: "Membentuk kajian LCA yang mengungkap hotspot dampak dari cradle-to-grave, bukan hanya satu angka karbon.",
+    firstWeek:
+      "Tetapkan satu produk atau proses pilot, functional unit, serta batas sistem awal yang disepakati tim.",
+    caution:
+      "Jangan menyamakan carbon footprint dengan LCA lengkap; scope, inventori, kategori dampak, interpretasi, dan data quality perlu dicatat terpisah.",
+    steps: [
+      {
+        title: "Tulis goal dan scope",
+        instruction:
+          "Nyatakan tujuan studi, keputusan yang ingin didukung, functional unit, produk/proses, batas sistem cradle-to-grave, dan pihak pengguna hasil.",
+        evidence: "Goal & scope note yang disetujui tim.",
+        output: "LCA scope v0.1.",
+        doneWhen:
+          "Functional unit dan batas sistem dapat dijelaskan tanpa istilah ambigu.",
+      },
+      {
+        title: "Petakan unit proses",
+        instruction:
+          "Gambar tahapan bahan baku, transportasi, produksi, penggunaan, dan akhir masa pakai. Tandai proses yang berada di dalam atau di luar scope.",
+        evidence: "Process flow diagram dan daftar unit proses.",
+        output: "Peta sistem LCA.",
+        doneWhen:
+          "Setiap proses memiliki pemilik data atau dinyatakan sebagai data gap.",
+      },
+      {
+        title: "Bangun life cycle inventory",
+        instruction:
+          "Kumpulkan input, output, energi, air, emisi, limbah, dan sumber data per unit proses. Tandai mana data primer terukur dan mana asumsi/sekunder.",
+        evidence: "LCI register, bukti meter, tagihan, dan referensi database.",
+        output: "Life cycle inventory.",
+        doneWhen: "Data memiliki unit, periode, sumber, dan catatan kualitas.",
+      },
+      {
+        title: "Nilai dampak dan hotspot",
+        instruction:
+          "Pilih kategori dampak yang relevan, jalankan penilaian dengan metode yang terdokumentasi, lalu identifikasi proses atau bahan yang paling dominan.",
+        evidence: "File model, metode LCIA, dan tabel hasil.",
+        output: "Hotspot assessment.",
+        doneWhen:
+          "Hasil memisahkan angka, metode, batasan, dan sensitivity check.",
+      },
+      {
+        title: "Interpretasi dan review",
+        instruction:
+          "Rumuskan peluang perbaikan, uji konsistensi hasil, dan siapkan review internal atau critical review independen bila hasil dipakai untuk klaim eksternal.",
+        evidence: "Interpretation note, review log, dan respons perbaikan.",
+        output: "LCA improvement roadmap.",
+        doneWhen:
+          "Rekomendasi dapat ditautkan ke hotspot dan keputusan pemilik proses.",
+      },
+    ],
+  },
+  {
+    domainId: "proper",
+    role: "PROPER officer, environment lead, compliance, operation support, atau PIC dokumen hijau",
+    goal: "Menyatukan kesiapan dokumen hijau, data, evaluasi, inovasi, kompetensi, dan kerja sama lintas domain untuk review PROPER.",
+    firstWeek:
+      "Buat register evidence yang menautkan setiap dokumen ke domain, pemilik, periode, status, dan kebutuhan verifikasi.",
+    caution:
+      "Kriteria dan cut-off PROPER dapat berubah; gunakan playbook untuk tata kelola evidence, bukan sebagai pengganti verifikasi terhadap ketentuan penilaian terkini.",
+    steps: [
+      {
+        title: "Bangun register dokumen hijau",
+        instruction:
+          "Daftar DRKPL, kebijakan, Renstra/Renja, laporan implementasi, evaluasi dampak, laporan lingkungan, inovasi, SDGs, dan dokumen pendukung lainnya.",
+        evidence:
+          "Evidence register dengan tautan folder, pemilik, periode, dan status.",
+        output: "Register dokumen hijau.",
+        doneWhen:
+          "Setiap dokumen wajib memiliki pemilik, versi, dan gap yang terlihat.",
+      },
+      {
+        title: "Hubungkan data ke domain",
+        instruction:
+          "Tautkan bukti energi, emisi, air, limbah, LCA, kehati, dan SML ke program atau laporan yang membutuhkannya; hindari pengumpulan ulang dari awal.",
+        evidence: "Data dictionary dan indeks sumber data.",
+        output: "Matriks data lintas domain.",
+        doneWhen:
+          "Setiap klaim atau metrik memiliki jalur kembali ke data dan metode.",
+      },
+      {
+        title: "Validasi laporan dan evidence",
+        instruction:
+          "Review kelengkapan, tanggal, konsistensi angka, metode, serta kebutuhan verifikasi atau benchmarking pada laporan teknis dan dokumen normatif.",
+        evidence: "Checklist review, log verifikasi, dan catatan koreksi.",
+        output: "Readiness review pack.",
+        doneWhen:
+          "Gap kritis memiliki tindakan, pemilik, dan target penyelesaian.",
+      },
+      {
+        title: "Kelola inovasi dan kerja sama",
+        instruction:
+          "Catat program inovasi, CIP, dekarbonisasi, circularity, atau kehati beserta baseline, nilai tambah, mitra, kontrak/MoU, dan bukti sebelum-sesudah.",
+        evidence:
+          "Innovation card, MoU/kontrak, baseline, dan dokumentasi hasil.",
+        output: "Portfolio inovasi lingkungan.",
+        doneWhen:
+          "Setiap program dapat menjelaskan kebaruan, dampak, penerima manfaat, dan batasan.",
+      },
+      {
+        title: "Review kompetensi dan ritme tahunan",
+        instruction:
+          "Perbarui training matrix, masa berlaku sertifikat, SK personel, agenda RTM, serta jadwal pembaruan dokumen dan audit.",
+        evidence: "Competency matrix, kalender review, dan notulen RTM.",
+        output: "Roadmap kesiapan PROPER.",
+        doneWhen:
+          "Renewal penting dan kegiatan review memiliki tanggal serta penanggung jawab.",
       },
     ],
   },
