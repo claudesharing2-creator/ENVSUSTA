@@ -3,3 +3,7 @@ node_modules
 .git
 *.min.js
 *.min.css
+
+# Tata letak Field Guide menggunakan deklarasi CSS dan JSX padat yang ditinjau melalui build serta audit visual.
+client/src/index.css
+client/src/pages/Home.tsx
