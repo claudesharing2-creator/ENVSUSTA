@@ -189,4 +189,6 @@
 - [x] Menambahkan filter daftar bacaan berdasarkan status baca dan domain.
 - [x] Menambahkan target tanggal serta penanda pengingat lokal pada bookmark.
 - [x] Menambahkan ekspor daftar bacaan dalam format Markdown.
-- [ ] Memvalidasi filter, pengingat, ekspor, responsivitas, build, dan deployment publik.
+- [x] Memvalidasi filter, pengingat, ekspor, responsivitas, build, dan deployment publik.
+
+> Verifikasi 25 Agustus 2026: target baca dan pengingat diuji pada browser lokal tanpa notifikasi saat aplikasi tertutup; metadata tetap tersimpan di perangkat. Ekspor Markdown memuat status, target, ringkasan sumber, tautan, dan catatan pribadi. Desktop/mobile serta build GitHub Pages untuk commit `f7d3a93` telah lolos.
