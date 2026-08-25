@@ -192,3 +192,10 @@
 - [x] Memvalidasi filter, pengingat, ekspor, responsivitas, build, dan deployment publik.
 
 > Verifikasi 25 Agustus 2026: target baca dan pengingat diuji pada browser lokal tanpa notifikasi saat aplikasi tertutup; metadata tetap tersimpan di perangkat. Ekspor Markdown memuat status, target, ringkasan sumber, tautan, dan catatan pribadi. Desktop/mobile serta build GitHub Pages untuk commit `f7d3a93` telah lolos.
+
+# Ringkasan Status, Agenda, dan Ekspor Terfilter
+
+- [x] Menambahkan ringkasan visual jumlah bahan bacaan pada setiap status baca.
+- [x] Menambahkan agenda mingguan untuk target tanggal baca yang telah ditentukan.
+- [x] Menjadikan ekspor Markdown mengikuti status dan domain pada filter aktif.
+- [ ] Memvalidasi ringkasan, agenda, ekspor terfilter, responsivitas, build, dan deployment publik.
