@@ -161,8 +161,21 @@
 - [x] Menambahkan struktur catatan per referensi yang kompatibel dengan bookmark lama.
 - [x] Menambahkan editor catatan singkat pada Daftar Bacaan Pribadi.
 - [x] Menyertakan catatan pribadi di autosave dan ekspor catatan literatur.
-- [ ] Memvalidasi persistensi, responsivitas, build, dan deployment publik.
+- [x] Memvalidasi persistensi, responsivitas, build, dan deployment publik.
 
 > Audit visual: panel rujukan memakai penanda rute topik → sumber → catatan yang konsisten dengan Field Guide. Pada mobile, pencarian, daftar bacaan, dan ruang catatan tetap tersusun satu kolom tanpa overflow.
 
 > Audit model lokal: bookmark lama tanpa catatan tetap valid; catatan dibatasi 280 karakter, dibersihkan ketika bookmark dihapus, serta ditambahkan sebagai `personalNote` saat ekspor catatan literatur.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `ef8d49d` sukses. Halaman Literatur publik memuat rute topik → sumber → catatan, kontrol bookmark, dan struktur editor catatan pribadi yang aktif setelah referensi disimpan.
+
+# Status, Urutan, dan Pemulihan Daftar Bacaan
+
+- [x] Menambahkan status baca dan waktu simpan yang kompatibel dengan bookmark lama.
+- [x] Menambahkan pilihan urut berdasarkan terbaru, topik, dan status baca.
+- [x] Menambahkan impor file catatan dengan validasi, pratinjau, dan pemulihan local-first.
+- [ ] Memvalidasi persistensi, pengurutan, impor, responsivitas, build, dan deployment publik.
+
+> Audit visual: panel daftar bacaan menampilkan kontrol urut dan impor secara ringkas di desktop serta mobile. Rute topik → sumber → catatan dan penanda spesimen aktif kini tetap terlihat pada layar sempit tanpa overflow.
+
+> Audit pemulihan: ekspor baru menyertakan id referensi, status, waktu simpan, dan catatan pribadi; impor menerima file JSON EnvSusta, memvalidasi setiap referensi terhadap registry terkini, memberi pratinjau, dan melakukan merge tanpa menimpa catatan lokal yang sudah ada.
