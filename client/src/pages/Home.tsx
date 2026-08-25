@@ -4,6 +4,8 @@ import {
   ArrowDownRight,
   ArrowRight,
   ArrowUp,
+  Bookmark,
+  BookmarkCheck,
   BookOpen,
   Building2,
   Check,
@@ -56,6 +58,7 @@ type LocalWorkspace = {
   inputs: CalcInputs;
   playbookProgress: Record<DomainId, boolean[]>;
   activeDomains: DomainId[];
+  savedReferences: string[];
   updatedAt?: string;
 };
 
@@ -64,6 +67,8 @@ type LiteratureSource = {
   note: string;
   href?: string;
 };
+
+type LiteratureReference = LiteratureSource & { id: string; domainId: DomainId; domainTitle: string };
 
 type Difficulty = "Pemula" | "Menengah" | "Lanjutan";
 type LandingAnchorId = "tujuan" | "topik" | "metode";
@@ -149,6 +154,30 @@ const literatureSources: Record<DomainId, LiteratureSource[]> = {
   ],
 };
 
+const literatureReferences: LiteratureReference[] = sustainabilityDomains.flatMap((domain) => literatureSources[domain.id].map((source, index) => ({ ...source, id: `${domain.id}:${index}`, domainId: domain.id, domainTitle: domain.shortTitle })));
+
+const standardGlossary: Record<string, string> = {
+  "GHG Protocol": "Kerangka untuk mengukur dan melaporkan inventaris emisi gas rumah kaca organisasi maupun rantai nilainya.",
+  "ISO 14001": "Standar sistem manajemen lingkungan yang menetapkan persyaratan dengan panduan penggunaan.",
+  "ISO 50001": "Standar sistem manajemen energi untuk menetapkan kebijakan, baseline, indikator, dan perbaikan kinerja energi.",
+  "ISO 14040": "Prinsip dan kerangka umum untuk Life Cycle Assessment atau LCA.",
+  "ISO 14044": "Persyaratan dan pedoman untuk tahapan serta interpretasi studi LCA.",
+  "GRI 303": "Standar topik untuk pelaporan dampak organisasi terkait air dan efluen.",
+  "GRI 306": "Standar topik untuk pelaporan dampak organisasi terkait limbah.",
+  "TNFD": "Kerangka pengelolaan dan pengungkapan isu terkait alam; LEAP berarti Locate, Evaluate, Assess, Prepare.",
+  "ISO 59020": "Standar pengukuran dan penilaian kinerja circularity dalam sistem ekonomi yang ditentukan.",
+  "VCMI": "Inisiatif yang menyediakan panduan klaim sukarela terkait penggunaan kredit karbon berkualitas tinggi.",
+  "ICVCM": "Inisiatif yang menetapkan Core Carbon Principles sebagai acuan integritas kredit karbon.",
+  "PROPER": "Program Penilaian Peringkat Kinerja Perusahaan dalam Pengelolaan Lingkungan Hidup oleh KLH/BPLH; ketentuan periode berjalan perlu dikonfirmasi pada kanal resmi.",
+};
+
+function StandardTerm({ term, href }: { term: string; href?: string }) {
+  const match = Object.entries(standardGlossary).find(([label]) => term.includes(label));
+  const label = href ? <a href={href} target="_blank" rel="noreferrer">{term}</a> : <strong>{term}</strong>;
+  if (!match) return label;
+  return <span className="standard-term" tabIndex={0}>{label}<span className="standard-tooltip" role="tooltip"><b>{match[0]}</b>{match[1]}</span></span>;
+}
+
 function blankPlaybookProgress(): Record<DomainId, boolean[]> {
   return actionPlaybooks.reduce((progress, playbook) => {
     progress[playbook.domainId] = playbook.steps.map(() => false);
@@ -165,23 +194,27 @@ function normalizePlaybookProgress(progress?: Partial<Record<DomainId, boolean[]
 }
 
 function readLocalWorkspace(): LocalWorkspace {
-  if (typeof window === "undefined") return { inputs: initialInputs, playbookProgress: blankPlaybookProgress(), activeDomains: [] };
+  if (typeof window === "undefined") return { inputs: initialInputs, playbookProgress: blankPlaybookProgress(), activeDomains: [], savedReferences: [] };
   try {
     const raw = window.localStorage.getItem("envsusta-local-workspace");
-    if (!raw) return { inputs: initialInputs, playbookProgress: blankPlaybookProgress(), activeDomains: [] };
+    if (!raw) return { inputs: initialInputs, playbookProgress: blankPlaybookProgress(), activeDomains: [], savedReferences: [] };
     const parsed = JSON.parse(raw) as Partial<LocalWorkspace>;
     const activeDomains = Array.isArray(parsed.activeDomains)
       ? parsed.activeDomains.filter((id): id is DomainId => sustainabilityDomains.some((domain) => domain.id === id))
+      : [];
+    const savedReferences = Array.isArray(parsed.savedReferences)
+      ? parsed.savedReferences.filter((id): id is string => literatureReferences.some((reference) => reference.id === id))
       : [];
     return {
       inputs: { ...initialInputs, ...(parsed.inputs ?? {}) },
       playbookProgress: normalizePlaybookProgress(parsed.playbookProgress),
       activeDomains,
+      savedReferences,
       updatedAt: parsed.updatedAt,
     };
   } catch {
     window.localStorage.removeItem("envsusta-local-workspace");
-    return { inputs: initialInputs, playbookProgress: blankPlaybookProgress(), activeDomains: [] };
+    return { inputs: initialInputs, playbookProgress: blankPlaybookProgress(), activeDomains: [], savedReferences: [] };
   }
 }
 
@@ -194,11 +227,12 @@ function formatSavedAt(updatedAt?: string) {
   return `Tersimpan ${new Date(updatedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
-function downloadReadingNotes(inputs: CalcInputs, playbookProgress: Record<DomainId, boolean[]>, activeDomains: DomainId[]) {
+function downloadReadingNotes(inputs: CalcInputs, playbookProgress: Record<DomainId, boolean[]>, activeDomains: DomainId[], savedReferences: string[]) {
   const payload = {
     app: "EnvSusta",
     exportedAt: new Date().toISOString(),
     bookmarkedTopics: activeDomains,
+    bookmarkedReferences: literatureReferences.filter((reference) => savedReferences.includes(reference.id)).map(({ title, note, href, domainTitle }) => ({ title, note, href, topic: domainTitle })),
     appliedPlaybookSteps: playbookProgress,
     methodWorksheet: { eCalcCarbon: inputs },
     note: "Catatan lokal berisi penanda topik, progres panduan penerapan, dan worksheet E-Calc opsional. Faktor pada E-Calc bersifat ilustratif; gunakan faktor resmi, batas organisasi, dan metodologi yang sesuai untuk pelaporan formal.",
@@ -228,6 +262,7 @@ export default function Home() {
   const [savedAt, setSavedAt] = useState(formatSavedAt(workspaceSeed.updatedAt));
   const [playbookProgress, setPlaybookProgress] = useState<Record<DomainId, boolean[]>>(() => normalizePlaybookProgress(workspaceSeed.playbookProgress));
   const [activeDomains, setActiveDomains] = useState<DomainId[]>(workspaceSeed.activeDomains);
+  const [savedReferences, setSavedReferences] = useState<string[]>(workspaceSeed.savedReferences);
   const [selectedDomainId, setSelectedDomainId] = useState<DomainId>(workspaceSeed.activeDomains[0] ?? "carbon");
   const [showMethod, setShowMethod] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -235,6 +270,7 @@ export default function Home() {
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "">("");
   const [selectedGoal, setSelectedGoal] = useState<UserGoal | "">("");
+  const [referenceQuery, setReferenceQuery] = useState("");
   const [activeLandingAnchor, setActiveLandingAnchor] = useState<LandingAnchorId>("tujuan");
   const [isAnchorNavigating, setIsAnchorNavigating] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
@@ -243,11 +279,11 @@ export default function Home() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const updatedAt = new Date().toISOString();
-      window.localStorage.setItem("envsusta-local-workspace", JSON.stringify({ inputs, playbookProgress, activeDomains, updatedAt }));
+      window.localStorage.setItem("envsusta-local-workspace", JSON.stringify({ inputs, playbookProgress, activeDomains, savedReferences, updatedAt }));
       setSavedAt(formatSavedAt(updatedAt));
     }, 500);
     return () => window.clearTimeout(timer);
-  }, [inputs, playbookProgress, activeDomains]);
+  }, [inputs, playbookProgress, activeDomains, savedReferences]);
 
   const calculation = useMemo(() => calculateStarterFootprint(inputs), [inputs]);
   const selectedDomain = sustainabilityDomains.find((domain) => domain.id === selectedDomainId) ?? sustainabilityDomains[0];
@@ -271,6 +307,9 @@ export default function Home() {
     });
   }, [searchQuery, selectedStandard, selectedSector, selectedDifficulty, selectedGoal]);
   const hasActiveFilters = Boolean(searchQuery || selectedStandard || selectedSector || selectedDifficulty || selectedGoal);
+  const normalizedReferenceQuery = referenceQuery.trim().toLocaleLowerCase("id-ID");
+  const referenceResults = normalizedReferenceQuery.length >= 2 ? literatureReferences.filter((reference) => [reference.title, reference.note, reference.domainTitle].join(" ").toLocaleLowerCase("id-ID").includes(normalizedReferenceQuery)) : [];
+  const savedReferenceEntries = literatureReferences.filter((reference) => savedReferences.includes(reference.id));
 
   useEffect(() => {
     if (filteredDomains.length && !filteredDomains.some((domain) => domain.id === selectedDomainId)) setSelectedDomainId(filteredDomains[0].id);
@@ -377,6 +416,14 @@ export default function Home() {
     if (destination) goTo(destination);
   };
 
+  const toggleSavedReference = (referenceId: string) => {
+    setSavedReferences((current) => {
+      const isSaved = current.includes(referenceId);
+      toast(isSaved ? "Referensi dihapus dari daftar bacaan." : "Referensi disimpan ke daftar bacaan pribadi.");
+      return isSaved ? current.filter((id) => id !== referenceId) : [...current, referenceId];
+    });
+  };
+
   const handleQuickStart = () => {
     activateDomain("carbon");
     goTo("calculator");
@@ -387,8 +434,9 @@ export default function Home() {
     setInputs(initialInputs);
     setPlaybookProgress(blankPlaybookProgress());
     setActiveDomains([]);
+    setSavedReferences([]);
     setSelectedDomainId("carbon");
-    toast("Penanda topik, langkah playbook, dan worksheet E-Calc telah dikosongkan.");
+    toast("Penanda topik, daftar bacaan, langkah playbook, dan worksheet E-Calc telah dikosongkan.");
   };
 
   const resetLiteratureFilters = () => {
@@ -552,11 +600,12 @@ export default function Home() {
         <nav className="lesson-nav extended" aria-label="Daftar materi">{sustainabilityDomains.map((domain) => <button className={selectedDomain.id === domain.id ? "selected" : ""} key={domain.id} onClick={() => setSelectedDomainId(domain.id)}><span>{domain.number}</span><DomainIcon domainId={domain.id} size={19} /><div><b>{domain.shortTitle}</b><small>{domain.lessonMinutes}</small></div><ChevronRight size={17} /></button>)}</nav>
         <article className="lesson-article domain-lesson">
           <div className={`lesson-hero ${selectedDomain.tone}`}><img src={envSustaAssets.learningAtlas} alt="Peta belajar sustainability dengan energi, air, material, emisi, dan nature" /><div><span className="section-kicker">MODUL {selectedDomain.number}</span><h2>{selectedDomain.title}</h2><p>{selectedDomain.summary}</p></div></div>
-          <div className="article-body"><div className="article-copy"><p>{selectedDomain.description}</p><section className="lesson-reading-focus" aria-label={`Fokus belajar ${selectedDomain.title}`}><span>FOKUS BACA</span><ul>{selectedDomain.learningFocus.map((item) => <li key={item}>{item}</li>)}</ul></section><p><b>Jika akan diterapkan:</b> {selectedDomain.firstAction}</p></div><aside className="field-note"><span>RUJUKAN MULAI</span><b>Sumber primer</b><ul className="source-list">{literatureSources[selectedDomain.id].map((source) => <li key={source.title}>{source.href ? <a href={source.href} target="_blank" rel="noreferrer">{source.title}</a> : <strong>{source.title}</strong>}<small>{source.note}</small></li>)}</ul></aside></div>
+          <div className="article-body"><div className="article-copy"><p>{selectedDomain.description}</p><section className="lesson-reading-focus" aria-label={`Fokus belajar ${selectedDomain.title}`}><span>FOKUS BACA</span><ul>{selectedDomain.learningFocus.map((item) => <li key={item}>{item}</li>)}</ul></section><p><b>Jika akan diterapkan:</b> {selectedDomain.firstAction}</p></div><aside className="field-note"><span>RUJUKAN MULAI</span><b>Sumber primer</b><ul className="source-list">{literatureReferences.filter((reference) => reference.domainId === selectedDomain.id).map((reference) => <li key={reference.id}><div><StandardTerm term={reference.title} href={reference.href} /><small>{reference.note}</small></div><button className="reference-save" onClick={() => toggleSavedReference(reference.id)} aria-label={`${savedReferences.includes(reference.id) ? "Hapus" : "Simpan"} ${reference.title} ${savedReferences.includes(reference.id) ? "dari" : "ke"} daftar bacaan`} aria-pressed={savedReferences.includes(reference.id)}>{savedReferences.includes(reference.id) ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}</button></li>)}</ul></aside></div>
           <div className="lesson-detail-grid"><div><span>KONSEP & INDIKATOR KUNCI</span>{selectedDomain.metrics.map((item) => <b key={item}>{item}</b>)}</div><div><span>ARTEFAK METODE</span>{selectedDomain.dataPoints.map((item) => <b key={item}>{item}</b>)}</div></div>
           <div className="lesson-actions"><button className="primary-action" onClick={() => activateDomain(selectedDomain.id, "plan")}>Buka panduan terapan <ArrowRight size={17} /></button><button className="quiet-action" onClick={() => activateDomain(selectedDomain.id, "library")}>Lihat ringkasan topik <ArrowRight size={16} /></button></div>
         </article>
       </section>
+      <section className="reference-finder" aria-labelledby="reference-finder-title"><div className="reference-finder-head"><div><span className="section-kicker">REFERENCE FINDER</span><h2 id="reference-finder-title">Cari dokumen dan panduan primer.</h2><p>Telusuri judul, topik, atau istilah seperti GHG, TNFD, air, PROPER, dan circularity. Arahkan kursor atau fokus keyboard ke istilah standar untuk melihat ringkasannya.</p></div><label className="reference-search"><Search size={17} /><input type="search" value={referenceQuery} onChange={(event) => setReferenceQuery(event.currentTarget.value)} placeholder="Cari GHG, ISO, PROPER, LCA…" aria-label="Cari referensi primer" /></label></div><div className="reference-finder-body"><div className="reference-results" aria-live="polite">{normalizedReferenceQuery.length < 2 ? <div className="reference-prompt"><Search size={19} /><b>Mulai dengan dua karakter.</b><p>Hasil akan mencakup dokumen dan panduan lintas seluruh domain EnvSusta.</p></div> : referenceResults.length ? <div className="reference-result-list">{referenceResults.map((reference) => <article key={reference.id}><span>{reference.domainTitle}</span><div><StandardTerm term={reference.title} href={reference.href} /><p>{reference.note}</p></div><button className="reference-save" onClick={() => toggleSavedReference(reference.id)} aria-label={`${savedReferences.includes(reference.id) ? "Hapus" : "Simpan"} ${reference.title} ${savedReferences.includes(reference.id) ? "dari" : "ke"} daftar bacaan`} aria-pressed={savedReferences.includes(reference.id)}>{savedReferences.includes(reference.id) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button></article>)}</div> : <div className="reference-prompt"><CircleHelp size={19} /><b>Belum ada rujukan yang cocok.</b><p>Coba kata kunci yang lebih umum, misalnya “ISO”, “air”, atau “karbon”.</p></div>}</div><aside className="reading-list"><span>DAFTAR BACAAN PRIBADI</span><b>{savedReferenceEntries.length} referensi disimpan</b>{savedReferenceEntries.length ? <ul>{savedReferenceEntries.map((reference) => <li key={reference.id}><span>{reference.domainTitle}</span><StandardTerm term={reference.title} href={reference.href} /><button onClick={() => toggleSavedReference(reference.id)} aria-label={`Hapus ${reference.title} dari daftar bacaan`}><X size={13} /></button></li>)}</ul> : <p>Simpan referensi dengan ikon bookmark. Daftar ini tersimpan di perangkat Anda.</p>}</aside></div></section>
     </>
   );
 
@@ -614,7 +663,7 @@ export default function Home() {
         <div className="explorer-grid"><div><span>ARTEFAK METODE</span>{selectedDomain.dataPoints.map((item) => <p key={item}><Check size={14} /> {item}</p>)}</div><div><span>KONSEP & INDIKATOR</span>{selectedDomain.metrics.map((item) => <p key={item}><LineChart size={14} /> {item}</p>)}</div><div><span>RUJUKAN & BUKTI KERJA</span>{selectedDomain.evidence.map((item) => <p key={item}><Save size={14} /> {item}</p>)}</div></div>
         <div className="explorer-footer"><p><b>Jika akan diterapkan:</b> {selectedDomain.firstAction}</p><div><button className="quiet-action" onClick={() => openDomainLearning(selectedDomain.id)}>Baca materi <ArrowRight size={16} /></button><button className="primary-action" onClick={() => activateDomain(selectedDomain.id, "plan")}>Buka panduan terapan <ArrowRight size={16} /></button></div></div>
       </section>
-      <section className="reference-strip"><div><span className="section-kicker">BATAS DAN SUMBER METODE</span><h3>Setiap materi perlu dibaca bersama konteks, versi metode, dan batas penggunaannya.</h3></div><div><p>EnvSusta menyimpan penanda topik, progres panduan, dan worksheet metode secara lokal. Untuk kerja formal, selalu gunakan sumber primer, ketentuan sektor, serta versi standar yang berlaku.</p><button className="quiet-action" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)}><Download size={16} /> Unduh catatan literatur</button></div></section></> : <section className="empty-literature-state"><Search size={22} /><span className="section-kicker">TIDAK ADA HASIL</span><h2>Belum ada materi yang cocok.</h2><p>Coba kata kunci lain atau kosongkan satu atau beberapa filter untuk memperluas peta literatur.</p><button className="primary-action" onClick={resetLiteratureFilters}>Kosongkan filter <X size={16} /></button></section>}
+      <section className="reference-strip"><div><span className="section-kicker">BATAS DAN SUMBER METODE</span><h3>Setiap materi perlu dibaca bersama konteks, versi metode, dan batas penggunaannya.</h3></div><div><p>EnvSusta menyimpan penanda topik, referensi favorit, progres panduan, dan worksheet metode secara lokal. Untuk kerja formal, selalu gunakan sumber primer, ketentuan sektor, serta versi standar yang berlaku.</p><button className="quiet-action" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains, savedReferences)}><Download size={16} /> Unduh catatan literatur</button></div></section></> : <section className="empty-literature-state"><Search size={22} /><span className="section-kicker">TIDAK ADA HASIL</span><h2>Belum ada materi yang cocok.</h2><p>Coba kata kunci lain atau kosongkan satu atau beberapa filter untuk memperluas peta literatur.</p><button className="primary-action" onClick={resetLiteratureFilters}>Kosongkan filter <X size={16} /></button></section>}
     </>
   );
 
@@ -648,11 +697,11 @@ export default function Home() {
       <div className="sidebar-footer"><div className="local-state"><span><Save size={14} /> Catatan lokal</span><p>Penanda topik, langkah panduan, dan worksheet metode tersimpan di browser Anda.</p></div><button className="profile-mini" onClick={() => goTo("library")}><span>ES</span><div><b>Rute bacaan pribadi</b><small>{activeDomains.length ? `${activeDomains.length} topik ditandai` : "Pilih topik awal"}</small></div><Settings2 size={16} /></button></div>
     </aside>
 
-    <header className="mobile-topbar"><button onClick={() => setMobileMenuOpen(true)} aria-label="Buka navigasi"><Menu size={21} /></button><button className="brand" onClick={() => goTo("overview")}><img src={envSustaAssets.orbitMark} alt="" /><span>EnvSusta</span></button><button onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)} aria-label="Unduh catatan literatur"><Download size={20} /></button></header>
+    <header className="mobile-topbar"><button onClick={() => setMobileMenuOpen(true)} aria-label="Buka navigasi"><Menu size={21} /></button><button className="brand" onClick={() => goTo("overview")}><img src={envSustaAssets.orbitMark} alt="" /><span>EnvSusta</span></button><button onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains, savedReferences)} aria-label="Unduh catatan literatur"><Download size={20} /></button></header>
     {mobileMenuOpen && <div className="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigasi utama"><div className="mobile-menu-top"><button className="brand" onClick={() => goTo("overview")}><img src={envSustaAssets.orbitMark} alt="" /><span>EnvSusta</span></button><button onClick={() => setMobileMenuOpen(false)} aria-label="Tutup navigasi"><X size={22} /></button></div>{navItems.map((item) => { const Icon = item.icon; return <button key={item.id} className={activeView === item.id ? "active" : ""} onClick={() => goTo(item.id)}><Icon size={19} />{item.label}<ChevronRight size={17} /></button>})}<div className="mobile-menu-foot"><Save size={15} /> Catatan literatur tersimpan di perangkat ini.</div></div>}
 
     <main className="workspace workspace-enter" id="workspace-main" key={activeView}>
-      <header className="workspace-topbar"><div><button className="back-home-link" onClick={() => goTo("overview")}><ArrowLeft size={14} /> Kembali ke beranda</button><span className="breadcrumb">ENVSUSTA / LITERATURE GUIDE</span><h2>{pageTitle[activeView]}</h2></div><div className="topbar-actions"><span className="autosave"><i />{savedAt}</span><button className="top-button" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains)}><Download size={16} /> Catatan</button><button className="top-button icon-only" onClick={resetWorkspace} aria-label="Reset catatan lokal"><RotateCcw size={16} /></button></div></header>
+      <header className="workspace-topbar"><div><button className="back-home-link" onClick={() => goTo("overview")}><ArrowLeft size={14} /> Kembali ke beranda</button><span className="breadcrumb">ENVSUSTA / LITERATURE GUIDE</span><h2>{pageTitle[activeView]}</h2></div><div className="topbar-actions"><span className="autosave"><i />{savedAt}</span><button className="top-button" onClick={() => downloadReadingNotes(inputs, playbookProgress, activeDomains, savedReferences)}><Download size={16} /> Catatan</button><button className="top-button icon-only" onClick={resetWorkspace} aria-label="Reset catatan lokal"><RotateCcw size={16} /></button></div></header>
       <div className="workspace-content">{pageContent}</div>
     </main>
     <nav className="mobile-bottom-nav" aria-label="Navigasi cepat">{navItems.map((item) => { const Icon = item.icon; return <button key={item.id} className={activeView === item.id ? "active" : ""} onClick={() => goTo(item.id)}><Icon size={18} /><span>{item.label}</span></button>; })}</nav>

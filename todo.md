@@ -135,8 +135,21 @@
 - [x] Memetakan shortcut panah yang aman untuk anchor serta kondisi ketika shortcut tidak aktif.
 - [x] Menambahkan tombol Kembali ke Atas dan progress bar membaca pada landing page.
 - [x] Memperkaya referensi primer untuk domain sustainability dan meninjau validitas tautannya.
-- [ ] Memvalidasi keyboard, responsivitas, build, dan deployment publik.
+- [x] Memvalidasi keyboard, responsivitas, build, dan deployment publik.
 
 > Audit visual: progress bar membaca menyatu di dasar header landing tanpa mengganggu navigasi. Tombol Kembali ke Atas menggunakan bentuk ringkas pada mobile dan label lengkap pada desktop; landing tetap terbaca tanpa overflow pada kedua ukuran layar.
 
 > Audit materi: setiap modul kini memiliki tiga fokus baca dan setidaknya dua hingga tiga rujukan primer yang dapat dibuka. Sumber PROPER ditautkan ke portal resmi KLH/BPLH; LCA, karbon, circularity, nature, air, limbah, dan SML diperkuat dengan penerbit standar atau organisasi primer terkait.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `5eba231` sukses. Landing publik menampilkan progress rute, tombol Kembali ke Atas, dan label keyboard pada navigasi anchor; sumber tambahan tersedia dari modul Literatur.
+
+# Literatur Interaktif dan Daftar Bacaan
+
+- [x] Menetapkan kamus istilah standar dan ringkasan tooltip yang ringkas.
+- [x] Menambahkan pencarian khusus pada rujukan primer beserta kondisi tanpa hasil.
+- [x] Menambahkan bookmark referensi local-first dan panel daftar bacaan pribadi.
+- [ ] Memvalidasi tooltip, keyboard, persistensi lokal, responsivitas, build, dan deployment publik.
+
+> Audit visual: kartu sumber primer memiliki tombol bookmark yang jelas. Panel Reference Finder tampil sebagai jalur terpisah dari materi dan daftar bacaan tetap berada dekat kolom pencarian; susunan beralih menjadi satu kolom pada mobile tanpa overflow.
+
+> Audit aksesibilitas: tooltip ditampilkan saat hover atau fokus keyboard, tombol bookmark menggunakan status `aria-pressed`, pencarian memiliki label yang dapat dibaca pembaca layar, dan daftar bacaan menjelaskan bahwa data disimpan lokal.
