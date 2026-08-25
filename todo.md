@@ -98,6 +98,20 @@
 - [x] Menambahkan header landing ringkas dengan logo dan anchor section.
 - [x] Menambahkan tombol kembali ke beranda pada workspace tools.
 - [x] Menambahkan transisi navigasi yang ringan serta menguji desktop/mobile.
-- [ ] Memvalidasi build dan menerbitkan alur pengguna yang diperbarui.
+- [x] Memvalidasi build dan menerbitkan alur pengguna yang diperbarui.
 
 > Audit visual: header landing ringkas dan CTA masuk tools tetap terbaca pada desktop/mobile. Spesimen Karbon tampil sebagai titik mulai dengan cue metode, sementara domain lain menjadi waypoint; rute titik dan orbit menghubungkan tujuan, topik, metode, dan praktik.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `5f342a8` sukses. Landing publik memuat header ringkas, anchor Tujuan/Topik/Metode, cue rute atlas, serta CTA masuk tools.
+
+# Indikator Anchor Aktif
+
+- [x] Menetapkan section yang dipantau untuk Tujuan, Topik, dan Metode.
+- [x] Menambahkan pelacakan scroll dan status anchor aktif pada header landing.
+- [x] Memvalidasi indikator desktop/mobile serta build dan deployment publik.
+
+> Uji interaksi: saat viewport memasuki bagian Tujuan, indikator Tujuan pada header berubah aktif. Anchor menggunakan IntersectionObserver dengan root margin yang mengutamakan section di area baca pengguna.
+
+> Uji scroll lanjutan: indikator berpindah ke Topik saat peta domain mendominasi viewport dan ke Metode saat section E-Calc menjadi konteks baca utama. Header tetap sticky sehingga status dapat dibaca sepanjang rute.
+
+> Verifikasi mobile: navigasi anchor berubah menjadi status ringkas dengan titik Canopy Teal dan nama section aktif; tampilan ini tidak mengganggu CTA Masuk tools pada layar sempit.

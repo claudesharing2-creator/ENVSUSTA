@@ -65,6 +65,7 @@ type LiteratureSource = {
 };
 
 type Difficulty = "Pemula" | "Menengah" | "Lanjutan";
+type LandingAnchorId = "tujuan" | "topik" | "metode";
 
 const initialInputs: CalcInputs = { electricity: "", diesel: "", transport: "", waste: "" };
 const domainIcons: Record<DomainId, typeof Leaf> = {
@@ -86,6 +87,12 @@ const navItems: { id: ViewId; label: string; icon: typeof PanelLeft; note?: stri
   { id: "learn", label: "Literatur", icon: BookOpen },
   { id: "plan", label: "Panduan terapan", icon: Target },
   { id: "calculator", label: "Metode hitung", icon: Footprints, note: "E-Calc" },
+];
+
+const landingAnchorItems: { id: LandingAnchorId; targetId: string; label: string }[] = [
+  { id: "tujuan", targetId: "landing-goals", label: "Tujuan" },
+  { id: "topik", targetId: "landing-topic-map", label: "Topik" },
+  { id: "metode", targetId: "landing-method", label: "Metode" },
 ];
 
 const literatureSources: Record<DomainId, LiteratureSource[]> = {
@@ -217,6 +224,7 @@ export default function Home() {
   const [selectedSector, setSelectedSector] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "">("");
   const [selectedGoal, setSelectedGoal] = useState<UserGoal | "">("");
+  const [activeLandingAnchor, setActiveLandingAnchor] = useState<LandingAnchorId>("tujuan");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -253,6 +261,22 @@ export default function Home() {
   useEffect(() => {
     if (filteredDomains.length && !filteredDomains.some((domain) => domain.id === selectedDomainId)) setSelectedDomainId(filteredDomains[0].id);
   }, [filteredDomains, selectedDomainId]);
+
+  useEffect(() => {
+    if (activeView !== "overview") return;
+    const sections = landingAnchorItems.map((item) => ({ ...item, element: document.getElementById(item.targetId) })).filter((item): item is typeof item & { element: HTMLElement } => Boolean(item.element));
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+      if (!visible.length) return;
+      const matching = sections.find((section) => section.element === visible[0].target);
+      if (matching) setActiveLandingAnchor(matching.id);
+    }, { rootMargin: "-22% 0px -57% 0px", threshold: [0.05, 0.2, 0.45] });
+
+    sections.forEach((section) => observer.observe(section.element));
+    return () => observer.disconnect();
+  }, [activeView]);
 
   const changeInput = (key: keyof CalcInputs) => (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.currentTarget.value;
@@ -317,7 +341,8 @@ export default function Home() {
     <>
       <header className="landing-header" aria-label="Navigasi landing page">
         <a className="landing-header-brand" href="#workspace-main"><img src={envSustaAssets.orbitMark} alt="Mark orbit terbuka EnvSusta" /><span>EnvSusta<small>FIELD GUIDE</small></span></a>
-        <nav aria-label="Jelajahi landing page"><a href="#landing-goals">Tujuan</a><a href="#landing-topic-map">Topik</a><a href="#landing-method">Metode</a></nav>
+        <nav aria-label="Jelajahi landing page">{landingAnchorItems.map((item) => <a key={item.id} href={`#${item.targetId}`} className={activeLandingAnchor === item.id ? "active" : ""} aria-current={activeLandingAnchor === item.id ? "location" : undefined} onClick={() => setActiveLandingAnchor(item.id)}>{item.label}</a>)}</nav>
+        <span className="landing-header-status"><i />{landingAnchorItems.find((item) => item.id === activeLandingAnchor)?.label}</span>
         <button className="landing-header-cta" onClick={() => goTo("library")}>Masuk tools <ArrowRight size={15} /></button>
       </header>
       <section className="welcome-panel workspace-hero">
