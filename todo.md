@@ -222,4 +222,6 @@
 - [x] Merekam masalah highlight navigasi materi yang menutupi label pada desktop dan mobile.
 - [x] Mengaudit alur topik, rujukan, dan panduan agar isi memberi langkah belajar serta penerapan yang jelas.
 - [x] Memperbaiki navigasi materi, hierarki pembelajaran, dan copy yang membingungkan.
-- [ ] Menguji seluruh domain, keyboard, desktop/mobile, build, dan deployment publik.
+- [x] Menguji seluruh domain, keyboard, desktop/mobile, build, dan deployment publik.
+
+> Verifikasi 25 Agustus 2026: navigasi domain diuji melalui klik dan Enter; viewport 430 px tidak lagi menampilkan garis dekoratif pada label aktif. Rute belajar pada setiap domain kini menjelaskan pertanyaan awal, hal yang perlu dipahami, data awal, dan tindakan awal. Pemeriksaan TypeScript, build produksi, dan GitHub Pages commit `d3c1837` berhasil.
