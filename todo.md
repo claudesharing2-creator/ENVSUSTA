@@ -209,3 +209,17 @@
 - [x] Memastikan GitHub Pages untuk commit terbaru berhasil.
 
 > Verifikasi 25 Agustus 2026: `main` lokal dan `origin/main` sama-sama berada pada commit `f2fc568`. Pemeriksaan Prettier, TypeScript, dan build target GitHub Pages berhasil; workflow GitHub Pages `32839390636` juga selesai sukses.
+
+# Verifikasi Deployment GitHub Pages Terbaru
+
+- [x] Memeriksa workflow GitHub Pages untuk commit branch utama paling baru.
+- [x] Membuka halaman publik dengan cache buster dan memastikan aplikasi dapat dimuat.
+
+> Verifikasi 25 Agustus 2026: GitHub Pages commit `3ebf6f9` berhasil melalui workflow `32842391784`; halaman publik modul Literatur dimuat dengan cache buster `v=3ebf6f9`.
+
+# Audit Bug Navigasi dan Kejelasan Materi
+
+- [x] Merekam masalah highlight navigasi materi yang menutupi label pada desktop dan mobile.
+- [x] Mengaudit alur topik, rujukan, dan panduan agar isi memberi langkah belajar serta penerapan yang jelas.
+- [x] Memperbaiki navigasi materi, hierarki pembelajaran, dan copy yang membingungkan.
+- [ ] Menguji seluruh domain, keyboard, desktop/mobile, build, dan deployment publik.

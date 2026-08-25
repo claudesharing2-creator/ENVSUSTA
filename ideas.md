@@ -84,6 +84,8 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Panel rujukan memakai bahasa Indonesia editorial dan rute eksplisit topik → sumber → catatan; pencarian serta bookmark diperlakukan sebagai artefak field library, bukan utilitas SaaS terpisah.
 - Jalur bertitik dan orbit terbuka berlanjut dari spesimen materi menuju rujukan, ringkasan status, agenda target, dan langkah simpan; setiap pengulangan menandai perpindahan konteks baca.
 - Keadaan kosong pada rujukan diperlakukan sebagai momen field library dengan cue sumber, rute baca, dan affordance catatan, bukan sebagai ruang utilitas yang kosong.
+- Status materi aktif, hover, dan fokus keyboard harus memiliki peran visual yang berbeda; dekorasi rute tidak boleh melewati atau menutupi label navigasi.
+- Setiap domain menjelaskan rute belajar dalam urutan yang konsisten: pahami konsep, siapkan data atau bukti, lakukan satu tindakan awal, lalu buka panduan terapan bila siap.
 
 ## Landing Page EnvSusta
 
