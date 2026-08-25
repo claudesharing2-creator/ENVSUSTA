@@ -23,6 +23,7 @@ export type SustainabilityDomain = {
   shortTitle: string;
   summary: string;
   description: string;
+  learningFocus: string[];
   firstAction: string;
   metrics: string[];
   dataPoints: string[];
@@ -43,6 +44,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Karbon",
     summary: "Mulai dari activity data, faktor emisi, dan batas organisasi yang jelas.",
     description: "Inventaris GRK membantu melihat emisi Scope 1, Scope 2, dan Scope 3 secara terpisah. Untuk pemula, yang paling penting adalah sumber data, periode, unit, dan asumsi yang dapat ditelusuri.",
+    learningFocus: ["Batas organisasi dan periode menentukan apa yang masuk inventaris.", "Scope 1, 2, dan 3 dilaporkan terpisah agar sumber emisi dapat ditelusuri.", "Gross inventory bukan angka setelah offset, credit, atau allowance."],
     firstAction: "Catat listrik, bahan bakar, perjalanan, dan limbah pada periode yang sama.",
     metrics: ["tCO₂e gross", "tCO₂e/TOE intensity", "cakupan Scope 1–3"],
     dataPoints: ["Tagihan listrik", "Bukti pembelian bahan bakar", "Kilometer perjalanan", "Catatan limbah"],
@@ -61,6 +63,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Energi",
     summary: "Kenali pola konsumsi sebelum memilih proyek efisiensi atau energi terbarukan.",
     description: "Manajemen energi menghubungkan pemakaian energi dengan aktivitas operasional. Baseline, EnPI, dan penggunaan energi signifikan membantu tim menemukan peluang perbaikan tanpa menebak-nebak.",
+    learningFocus: ["Baseline perlu dibaca bersama output, jam operasi, atau okupansi.", "Penggunaan energi signifikan membantu menentukan prioritas audit dan tindakan.", "Penghematan perlu disertai metode ukur dan catatan perubahan proses."],
     firstAction: "Susun baseline kWh dan tandai proses atau lokasi dengan penggunaan terbesar.",
     metrics: ["GJ status/absolut", "GJ/TOE intensity", "penggunaan energi signifikan"],
     dataPoints: ["Tagihan energi", "Jam operasi", "Output atau okupansi", "Daftar peralatan utama"],
@@ -79,6 +82,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Air",
     summary: "Pantau pengambilan, penggunaan, pelepasan, kualitas, dan risiko air di lokasi.",
     description: "Air perlu dikelola sebagai aliran fisik dan risiko lokal. Mulailah dengan memahami dari mana air berasal, ke mana air digunakan, apakah ada efluen, dan bukti pemantauan yang tersedia.",
+    learningFocus: ["Air adalah sumber daya bersama; konteks catchment dan pengguna lain penting.", "Withdrawal, consumption, discharge, dan kualitas efluen perlu dibaca sebagai satu sistem.", "Data volume harus dilengkapi lokasi, metode, asumsi, izin, dan baku mutu."],
     firstAction: "Buat water balance sederhana untuk satu lokasi atau satu proses utama.",
     metrics: ["m³ withdrawal", "m³/TOE intensity", "m³ discharge dan beban pencemar"],
     dataPoints: ["Tagihan atau meter air", "Sumber air", "Volume efluen", "Hasil uji kualitas"],
@@ -97,6 +101,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Limbah",
     summary: "Utamakan pencegahan, pengurangan, pemilahan, dan pengelolaan yang dapat dibuktikan.",
     description: "Pengelolaan limbah bukan hanya berat total. Penting untuk memahami jenis limbah, hierarki pengelolaan, limbah B3, jalur pengangkutan, serta pengendalian polusi yang relevan.",
+    learningFocus: ["Bedakan jenis, sumber, tingkat risiko, dan jalur akhir tiap aliran limbah.", "Pencegahan dan pengurangan di sumber perlu diprioritaskan sebelum klaim diversion.", "Klaim pengelolaan harus ditopang vendor, manifest, izin, atau bukti penerimaan."],
     firstAction: "Pisahkan tiga aliran limbah terbesar dan catat jalur pengelolaannya.",
     metrics: ["ton LB3 dan LNB3", "ton/TOE intensity", "tingkat diversion"],
     dataPoints: ["Timbangan atau manifest", "Jenis limbah", "Vendor pengelola", "Tujuan akhir"],
@@ -115,6 +120,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Material",
     summary: "Lihat bahan masuk, masa pakai produk, sisa proses, dan peluang sirkular.",
     description: "Circularity membantu tim mengurangi kebutuhan material baru melalui desain yang tahan lama, penggunaan kembali, perbaikan, serta peningkatan pemulihan material di akhir masa pakai.",
+    learningFocus: ["Circularity tidak hanya recycled content; daya tahan, reuse, repair, dan recovery juga penting.", "Material flow mengungkap titik scrap, kehilangan nilai, dan peluang desain ulang.", "Metrik circularity perlu memiliki batas sistem dan data material yang dapat dilacak."],
     firstAction: "Pilih satu material dominan dan petakan masuk, dipakai, tersisa, dan keluar.",
     metrics: ["material input", "recycled content", "recovery rate"],
     dataPoints: ["Bill of materials", "Pembelian material", "Scrap proses", "Data pengembalian"],
@@ -133,6 +139,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "LCA",
     summary: "Telusuri dampak produk dari cradle-to-grave untuk menemukan hotspot dan peluang perbaikan yang terukur.",
     description: "Life Cycle Assessment atau LCA menghubungkan tujuan studi, lingkup, inventori input-output-emisi, penilaian dampak, interpretasi, dan tinjauan kritis. Ini melampaui carbon footprint tunggal.",
+    learningFocus: ["Goal, functional unit, dan batas sistem menentukan arti hasil LCA.", "Life cycle inventory memisahkan data primer, data sekunder, asumsi, dan kualitas data.", "Hotspot dipakai untuk mengarahkan perbaikan, bukan untuk membandingkan tanpa aturan produk yang setara."],
     firstAction: "Pilih satu produk atau proses dan tuliskan functional unit, batas sistem, serta alasan studi LCA.",
     metrics: ["functional unit", "cakupan data terukur", "kategori dampak prioritas"],
     dataPoints: ["Unit proses", "Input dan output", "Emisi dan limbah", "Sumber data primer/sekunder"],
@@ -151,6 +158,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Nature",
     summary: "Pahami dampak dan ketergantungan organisasi terhadap ekosistem serta penggunaan lahan.",
     description: "Nature mencakup keterkaitan organisasi dengan lahan, air, hutan, habitat, dan spesies. Fokus awalnya adalah lokasi, rantai pasok, tekanan utama, dan langkah menghindari atau memulihkan dampak.",
+    learningFocus: ["Screening dimulai dari lokasi, value chain, dan ketergantungan pada ekosistem.", "LEAP membantu menyusun urutan Locate, Evaluate, Assess, dan Prepare.", "Respons perlu memprioritaskan avoid, reduce, dan restore sebelum klaim kontribusi tambahan."],
     firstAction: "Tandai lokasi dan pemasok yang paling bergantung pada lahan, air, atau bahan berbasis alam.",
     metrics: ["lokasi prioritas", "status Biodiversity Action Plan", "cakupan monitoring flora-fauna"],
     dataPoints: ["Koordinat lokasi", "Komoditas utama", "Peta pemasok", "Baseline flora-fauna"],
@@ -169,6 +177,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "SML",
     summary: "Kelola kebijakan, ASDAM, audit, RTM, tindakan perbaikan, dan bukti yang siap direview.",
     description: "Sistem Manajemen Lingkungan atau SML menghubungkan aspek-dampak, pengendalian dokumen, kompetensi, audit, ketidaksesuaian, tindakan perbaikan dan pencegahan, serta tinjauan manajemen.",
+    learningFocus: ["ASDAM menghubungkan aktivitas, dampak, pengendalian, dan prioritas tindakan.", "Audit serta CAPA perlu memisahkan temuan, akar masalah, tindakan, dan verifikasi efektivitas.", "Disclosure dapat dipercaya bila KPI memiliki definisi, pemilik, periode, dan evidence."],
     firstAction: "Pilih satu temuan atau aspek lingkungan, lalu catat pemilik, tindakan perbaikan, bukti, dan tanggal review.",
     metrics: ["status ASDAM", "temuan audit tertutup", "cakupan evidence"],
     dataPoints: ["Rapor PROPER", "Temuan audit", "Pemilik tindakan", "Status kompetensi"],
@@ -187,6 +196,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "Carbon market",
     summary: "Pisahkan inventaris gross, pengurangan, credit, allowance, retirement, dan klaim.",
     description: "Carbon market bukan pengganti inventaris emisi. Sebelum mempertimbangkan instrumen pasar, tim perlu memisahkan gross emissions, strategi pengurangan, karakter unit karbon, retirement, serta batas klaim yang digunakan.",
+    learningFocus: ["Inventaris gross dan rencana pengurangan internal tetap menjadi titik mulai.", "Setiap unit perlu ID, vintage, registry, status, serta bukti retirement yang dapat dicek.", "Bahasa klaim perlu ditinjau terpisah dari pembelian unit karbon."],
     firstAction: "Dokumentasikan gross emissions lebih dulu dan catat setiap unit karbon sebagai ledger terpisah.",
     metrics: ["gross emissions", "unit karbon", "status retirement"],
     dataPoints: ["ID proyek atau unit", "Vintage", "Registry", "Status kepemilikan"],
@@ -205,6 +215,7 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
     shortTitle: "PROPER",
     summary: "Satukan dokumen hijau, DRKPL, laporan teknis, inovasi, kompetensi, dan evidence lintas domain.",
     description: "Kesiapan PROPER Beyond Compliance membutuhkan portofolio bukti yang konsisten: dokumen hijau, data terverifikasi, pelaporan dampak, program inovasi, kerja sama, kompetensi, dan roadmap pembaruan tahunan.",
+    learningFocus: ["Evidence register perlu menautkan dokumen, pemilik, periode, versi, dan status verifikasi.", "Data energi, air, limbah, emisi, nature, dan SML harus memiliki jalur bukti yang konsisten.", "Kriteria, mekanisme, dan cut-off PROPER wajib selalu dikonfirmasi pada kanal resmi periode berjalan."],
     firstAction: "Buat daftar evidence lintas domain dan tandai dokumen yang perlu diperbarui, diverifikasi, atau diberi pemilik.",
     metrics: ["kesiapan evidence", "status dokumen hijau", "program inovasi tervalidasi"],
     dataPoints: ["DRKPL", "Renstra dan Renja", "Laporan teknis", "Training matrix dan kontrak kerja sama"],

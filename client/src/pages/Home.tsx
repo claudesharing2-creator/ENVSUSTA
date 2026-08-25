@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   ArrowDownRight,
   ArrowRight,
+  ArrowUp,
   BookOpen,
   Building2,
   Check,
@@ -36,7 +37,7 @@ import {
   Zap,
 } from "lucide-react";
 /* Field Guide yang Tenang: landing page mengarahkan pembaca dari tujuan ke literatur, metode, dan panduan terapan. */
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import "@/landing.css";
 import { calculateStarterFootprint, type StarterFootprintInputs } from "@/lib/calculations";
@@ -99,42 +100,52 @@ const literatureSources: Record<DomainId, LiteratureSource[]> = {
   carbon: [
     { title: "GHG Protocol Corporate Standard", note: "Inventaris dan pelaporan emisi organisasi", href: "https://ghgprotocol.org/corporate-standard" },
     { title: "GHG Protocol Scope 2 Guidance", note: "Emisi dari energi yang dibeli", href: "https://ghgprotocol.org/scope-2-guidance" },
+    { title: "GHG Protocol Scope 3 Standard", note: "Metodologi emisi rantai nilai; bukan pembanding langsung antarperusahaan", href: "https://ghgprotocol.org/corporate-value-chain-scope-3-standard" },
   ],
   energy: [
     { title: "ISO 50001", note: "Sistem manajemen energi", href: "https://www.iso.org/standard/69426.html" },
     { title: "ISO environmental sustainability", note: "Portal tema dan standar lingkungan", href: "https://www.iso.org/sectors/environment" },
+    { title: "IEA Energy Efficiency", note: "Konteks kebijakan dan praktik efisiensi energi", href: "https://www.iea.org/topics/energy-efficiency" },
   ],
   water: [
     { title: "GRI 303: Water and Effluents 2018", note: "Pengungkapan penggunaan air dan efluen", href: "https://www.globalreporting.org/standards/media/1906/gri-303-water-and-effluents-2018.pdf" },
     { title: "ISO environmental sustainability", note: "Konteks sistem manajemen lingkungan", href: "https://www.iso.org/sectors/environment" },
+    { title: "WRI Aqueduct", note: "Sumber terbuka untuk konteks risiko air dan water stress", href: "https://www.wri.org/aqueduct" },
   ],
   waste: [
     { title: "GRI 306: Waste 2020", note: "Pengungkapan dan pengelolaan limbah", href: "https://www.globalreporting.org/standards/media/2573/gri-306-waste-2020.pdf" },
     { title: "ISO environmental sustainability", note: "Konteks sistem manajemen lingkungan", href: "https://www.iso.org/sectors/environment" },
+    { title: "Basel Convention", note: "Konteks internasional limbah berbahaya dan pengelolaan lintas batas", href: "https://www.basel.int/" },
   ],
   materials: [
     { title: "ISO 59020", note: "Pengukuran dan penilaian circularity performance", href: "https://www.iso.org/standard/80648.html" },
     { title: "ISO circular economy", note: "Keluarga standar ekonomi sirkular", href: "https://www.iso.org/committee/7203984.html" },
+    { title: "ISO Circular Economy", note: "Durability, reusability, repairability, dan traceability", href: "https://www.iso.org/sectors/environment/circular-economy" },
   ],
   lca: [
     { title: "ISO 14040", note: "Prinsip dan kerangka Life Cycle Assessment", href: "https://www.iso.org/standard/37456.html" },
     { title: "ISO 14044", note: "Persyaratan dan pedoman LCA", href: "https://www.iso.org/standard/38498.html" },
+    { title: "UNEP Life Cycle Initiative", note: "Jalur belajar, pustaka, metode LCIA, dan sumber LCA global", href: "https://www.lifecycleinitiative.org/" },
   ],
   nature: [
     { title: "TNFD LEAP approach", note: "Locate, Evaluate, Assess, Prepare", href: "https://tnfd.global/publication/additional-guidance-on-assessment-of-nature-related-issues-the-leap-approach/" },
     { title: "Kunming–Montreal Global Biodiversity Framework", note: "Kerangka aksi keanekaragaman hayati", href: "https://www.cbd.int/gbf" },
+    { title: "TNFD Standards Alignment", note: "Keterhubungan TNFD dengan GRI, ISO, ISSB, dan ESRS", href: "https://tnfd.global/standards-alignment/" },
   ],
   esg: [
     { title: "ISO 14000 family", note: "Sistem dan standar manajemen lingkungan", href: "https://www.iso.org/standards/popular/iso-14000-family" },
     { title: "ISO 14001", note: "Gunakan versi standar SML yang paling mutakhir", href: "https://www.iso.org/standards/popular/iso-14000-family" },
+    { title: "GRI Standards", note: "Struktur Universal, Sector, dan Topic Standards untuk pelaporan dampak", href: "https://www.globalreporting.org/standards/" },
   ],
   markets: [
     { title: "VCMI Claims Code", note: "Panduan klaim terkait penggunaan kredit karbon", href: "https://vcmintegrity.org/claims-code/" },
     { title: "ICVCM Core Carbon Principles", note: "Integritas kredit karbon", href: "https://icvcm.org/the-core-carbon-principles/" },
+    { title: "GHG Protocol Corporate Standard", note: "Rujukan untuk menjaga inventaris gross terpisah dari unit pasar", href: "https://ghgprotocol.org/corporate-standard" },
   ],
   proper: [
-    { title: "PROPER Beyond Compliance", note: "Materi pemrakarsa: dokumen hijau, DRKPL, inovasi, kompetensi, dan evidence lintas domain" },
-    { title: "Ketentuan PROPER terkini", note: "Selalu konfirmasi kriteria dan cut-off langsung pada kanal resmi KLH/BPLH" },
+    { title: "Portal PROPER KLH/BPLH", note: "Berita mekanisme, kriteria, dokumen, dan pengumuman periode", href: "https://proper.kemenlh.go.id/proper/home" },
+    { title: "Kementerian LH/BPLH: PROPER", note: "Konteks PROPER sebagai kebijakan peningkatan kinerja dan transparansi", href: "https://kemenlh.go.id/contents/13/Proper" },
+    { title: "Ketentuan PROPER terkini", note: "Selalu konfirmasi kriteria, periode, dan cut-off langsung pada kanal resmi KLH/BPLH" },
   ],
 };
 
@@ -226,6 +237,8 @@ export default function Home() {
   const [selectedGoal, setSelectedGoal] = useState<UserGoal | "">("");
   const [activeLandingAnchor, setActiveLandingAnchor] = useState<LandingAnchorId>("tujuan");
   const [isAnchorNavigating, setIsAnchorNavigating] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const readingFrame = useRef<number | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -279,6 +292,38 @@ export default function Home() {
     return () => observer.disconnect();
   }, [activeView]);
 
+  useEffect(() => {
+    if (activeView !== "overview") {
+      document.documentElement.style.setProperty("--landing-reading-progress", "0");
+      setShowBackToTop(false);
+      return;
+    }
+
+    const updateReadingStatus = () => {
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const progress = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+      document.documentElement.style.setProperty("--landing-reading-progress", progress.toFixed(4));
+      const firstSection = document.getElementById("landing-goals");
+      const threshold = Math.max(180, (firstSection?.offsetTop ?? window.innerHeight) - window.innerHeight * .34);
+      setShowBackToTop((current) => current === (window.scrollY > threshold) ? current : window.scrollY > threshold);
+    };
+    const onScroll = () => {
+      if (readingFrame.current !== null) return;
+      readingFrame.current = window.requestAnimationFrame(() => {
+        updateReadingStatus();
+        readingFrame.current = null;
+      });
+    };
+    updateReadingStatus();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", updateReadingStatus);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", updateReadingStatus);
+      if (readingFrame.current !== null) window.cancelAnimationFrame(readingFrame.current);
+    };
+  }, [activeView]);
+
   const changeInput = (key: keyof CalcInputs) => (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.currentTarget.value;
     setInputs((current) => ({ ...current, [key]: nextValue }));
@@ -301,6 +346,30 @@ export default function Home() {
     target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
     window.setTimeout(() => setIsAnchorNavigating(false), reduceMotion ? 0 : 560);
   };
+
+  const returnToLandingTop = () => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.history.pushState(null, "", window.location.pathname);
+    setActiveLandingAnchor("tujuan");
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+  };
+
+  useEffect(() => {
+    if (activeView !== "overview") return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.repeat) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const currentIndex = landingAnchorItems.findIndex((item) => item.id === activeLandingAnchor);
+      const step = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (currentIndex + step + landingAnchorItems.length) % landingAnchorItems.length;
+      event.preventDefault();
+      navigateLandingAnchor(landingAnchorItems[nextIndex]);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeView, activeLandingAnchor]);
 
   const activateDomain = (domainId: DomainId, destination?: ViewId) => {
     setSelectedDomainId(domainId);
@@ -353,7 +422,7 @@ export default function Home() {
     <>
       <header className={`landing-header ${isAnchorNavigating ? "is-routing" : ""}`} aria-label="Navigasi landing page">
         <a className="landing-header-brand" href="#workspace-main"><img src={envSustaAssets.orbitMark} alt="Mark orbit terbuka EnvSusta" /><span>EnvSusta<small>FIELD GUIDE</small></span></a>
-        <nav aria-label="Jelajahi landing page">{landingAnchorItems.map((item) => <a key={item.id} href={`#${item.targetId}`} className={activeLandingAnchor === item.id ? "active" : ""} aria-current={activeLandingAnchor === item.id ? "location" : undefined} onClick={(event) => { event.preventDefault(); navigateLandingAnchor(item); }}>{item.label}</a>)}</nav>
+        <nav aria-label="Jelajahi landing page. Gunakan tombol panah kiri atau kanan untuk berpindah antarbagian.">{landingAnchorItems.map((item) => <a key={item.id} href={`#${item.targetId}`} className={activeLandingAnchor === item.id ? "active" : ""} aria-current={activeLandingAnchor === item.id ? "location" : undefined} onClick={(event) => { event.preventDefault(); navigateLandingAnchor(item); }}>{item.label}</a>)}</nav>
         <span className="landing-header-status" aria-live="polite"><i />{landingAnchorItems.find((item) => item.id === activeLandingAnchor)?.label}</span>
         <button className="landing-header-cta" onClick={() => goTo("library")}>Masuk tools <ArrowRight size={15} /></button>
       </header>
@@ -436,6 +505,7 @@ export default function Home() {
       <section className="landing-cta" aria-labelledby="landing-cta-title"><div><span className="section-kicker">BUKA RUTE BACA</span><h2 id="landing-cta-title">Temukan topik yang paling dekat dengan pekerjaan Anda.</h2><p>Mulai dari tujuan, lanjutkan ke sumber dan metode, lalu gunakan panduan terapan ketika Anda membutuhkannya.</p></div><div><button className="primary-action" onClick={() => goTo("library")}>Jelajahi peta topik <ArrowDownRight size={17} /></button><button className="quiet-action" onClick={() => goTo("plan")}>Buka panduan terapan <ArrowRight size={16} /></button></div></section>
 
       <footer className="landing-footer"><div className="landing-footer-brand"><img src={envSustaAssets.orbitMark} alt="Mark orbit terbuka EnvSusta" /><div><b>EnvSusta</b><span>Literatur sustainability, tanpa kehilangan arah.</span></div></div><p>Local-first. Baca konteks, telusuri metode, simpan catatan di perangkat Anda.</p><button className="text-button" onClick={() => goTo("library")}>Masuk ke literatur <ArrowRight size={16} /></button></footer>
+      <button className={`back-to-top ${showBackToTop ? "visible" : ""}`} onClick={returnToLandingTop} aria-label="Kembali ke atas halaman"><ArrowUp size={17} /><span>Kembali ke Atas</span></button>
     </>
   );
 
@@ -482,7 +552,7 @@ export default function Home() {
         <nav className="lesson-nav extended" aria-label="Daftar materi">{sustainabilityDomains.map((domain) => <button className={selectedDomain.id === domain.id ? "selected" : ""} key={domain.id} onClick={() => setSelectedDomainId(domain.id)}><span>{domain.number}</span><DomainIcon domainId={domain.id} size={19} /><div><b>{domain.shortTitle}</b><small>{domain.lessonMinutes}</small></div><ChevronRight size={17} /></button>)}</nav>
         <article className="lesson-article domain-lesson">
           <div className={`lesson-hero ${selectedDomain.tone}`}><img src={envSustaAssets.learningAtlas} alt="Peta belajar sustainability dengan energi, air, material, emisi, dan nature" /><div><span className="section-kicker">MODUL {selectedDomain.number}</span><h2>{selectedDomain.title}</h2><p>{selectedDomain.summary}</p></div></div>
-          <div className="article-body"><div className="article-copy"><p>{selectedDomain.description}</p><p><b>Jika akan diterapkan:</b> {selectedDomain.firstAction}</p></div><aside className="field-note"><span>RUJUKAN MULAI</span><b>Sumber primer</b><ul className="source-list">{literatureSources[selectedDomain.id].map((source) => <li key={source.title}>{source.href ? <a href={source.href} target="_blank" rel="noreferrer">{source.title}</a> : <strong>{source.title}</strong>}<small>{source.note}</small></li>)}</ul></aside></div>
+          <div className="article-body"><div className="article-copy"><p>{selectedDomain.description}</p><section className="lesson-reading-focus" aria-label={`Fokus belajar ${selectedDomain.title}`}><span>FOKUS BACA</span><ul>{selectedDomain.learningFocus.map((item) => <li key={item}>{item}</li>)}</ul></section><p><b>Jika akan diterapkan:</b> {selectedDomain.firstAction}</p></div><aside className="field-note"><span>RUJUKAN MULAI</span><b>Sumber primer</b><ul className="source-list">{literatureSources[selectedDomain.id].map((source) => <li key={source.title}>{source.href ? <a href={source.href} target="_blank" rel="noreferrer">{source.title}</a> : <strong>{source.title}</strong>}<small>{source.note}</small></li>)}</ul></aside></div>
           <div className="lesson-detail-grid"><div><span>KONSEP & INDIKATOR KUNCI</span>{selectedDomain.metrics.map((item) => <b key={item}>{item}</b>)}</div><div><span>ARTEFAK METODE</span>{selectedDomain.dataPoints.map((item) => <b key={item}>{item}</b>)}</div></div>
           <div className="lesson-actions"><button className="primary-action" onClick={() => activateDomain(selectedDomain.id, "plan")}>Buka panduan terapan <ArrowRight size={17} /></button><button className="quiet-action" onClick={() => activateDomain(selectedDomain.id, "library")}>Lihat ringkasan topik <ArrowRight size={16} /></button></div>
         </article>

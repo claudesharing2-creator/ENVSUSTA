@@ -122,8 +122,21 @@
 
 - [x] Menentukan perilaku scroll anchor beserta fallback reduced motion.
 - [x] Menerapkan transisi scroll, update URL, dan umpan balik visual anchor.
-- [ ] Memvalidasi navigasi anchor pada desktop/mobile serta build dan deployment publik.
+- [x] Memvalidasi navigasi anchor pada desktop/mobile serta build dan deployment publik.
 
 > Verifikasi interaksi: klik anchor kini melakukan `scrollIntoView` dengan perilaku smooth, memperbarui hash rute, dan memicu pulse singkat pada status aktif. Pada reduced motion, perpindahan dibuat instan tanpa animasi rute.
 
 > Verifikasi mobile: status section, CTA, dan header sticky tetap termuat rapi setelah umpan balik rute ditambahkan.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `9783290` sukses. Landing publik memuat transisi anchor terkontrol, pembaruan hash rute, offset header sticky, dan fallback reduced motion.
+
+# Navigasi, Progress, dan Referensi Primer
+
+- [x] Memetakan shortcut panah yang aman untuk anchor serta kondisi ketika shortcut tidak aktif.
+- [x] Menambahkan tombol Kembali ke Atas dan progress bar membaca pada landing page.
+- [x] Memperkaya referensi primer untuk domain sustainability dan meninjau validitas tautannya.
+- [ ] Memvalidasi keyboard, responsivitas, build, dan deployment publik.
+
+> Audit visual: progress bar membaca menyatu di dasar header landing tanpa mengganggu navigasi. Tombol Kembali ke Atas menggunakan bentuk ringkas pada mobile dan label lengkap pada desktop; landing tetap terbaca tanpa overflow pada kedua ukuran layar.
+
+> Audit materi: setiap modul kini memiliki tiga fokus baca dan setidaknya dua hingga tiga rujukan primer yang dapat dibuka. Sumber PROPER ditautkan ke portal resmi KLH/BPLH; LCA, karbon, circularity, nature, air, limbah, dan SML diperkuat dengan penerbit standar atau organisasi primer terkait.
