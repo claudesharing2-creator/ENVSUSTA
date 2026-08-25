@@ -76,7 +76,7 @@ type Difficulty = "Pemula" | "Menengah" | "Lanjutan";
 type LandingAnchorId = "tujuan" | "topik" | "metode";
 type ReadingStatus = "Belum dibaca" | "Sedang dibaca" | "Sudah ditinjau";
 type BookmarkSort = "recent" | "topic" | "status";
-type BookmarkMeta = { status: ReadingStatus; savedAt?: string };
+type BookmarkMeta = { status: ReadingStatus; savedAt?: string; dueDate: string; reminderEnabled?: boolean; reminderShownOn?: string };
 type ImportedBookmark = { id: string; note: string; meta: BookmarkMeta };
 type ImportPreview = { bookmarks: ImportedBookmark[]; skipped: number };
 
@@ -219,7 +219,10 @@ function readLocalWorkspace(): LocalWorkspace {
       const candidate = parsed.bookmarkMeta?.[id];
       const status = candidate && readingStatuses.includes(candidate.status) ? candidate.status : "Belum dibaca";
       const savedAt = candidate && typeof candidate.savedAt === "string" && !Number.isNaN(Date.parse(candidate.savedAt)) ? candidate.savedAt : undefined;
-      return [id, { status, savedAt }];
+      const dueDate = candidate && isDateOnly(candidate.dueDate) ? candidate.dueDate : "";
+      const reminderEnabled = Boolean(dueDate && candidate?.reminderEnabled);
+      const reminderShownOn = candidate && isDateOnly(candidate.reminderShownOn) ? candidate.reminderShownOn : undefined;
+      return [id, { status, savedAt, dueDate, reminderEnabled, reminderShownOn }];
     }));
     return {
       inputs: { ...initialInputs, ...(parsed.inputs ?? {}) },
@@ -250,6 +253,26 @@ function formatBookmarkDate(value?: string) {
   return new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
 }
 
+function isDateOnly(value: unknown): value is string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00`));
+}
+
+function dueLabel(value?: string) {
+  if (!isDateOnly(value)) return "Belum ada target";
+  const today = new Date().toISOString().slice(0, 10);
+  if (value < today) return `Terlambat · ${formatBookmarkDate(value)}`;
+  if (value === today) return "Target hari ini";
+  return `Target ${formatBookmarkDate(value)}`;
+}
+
+function isDueOnOrBeforeToday(value?: string) {
+  return isDateOnly(value) && value <= new Date().toISOString().slice(0, 10);
+}
+
+function escapeMarkdownText(value: string) {
+  return value.replace(/\\/g, "\\\\").replace(/([*_`\[\]<>])/g, "\\$1").replace(/\r?\n/g, " ");
+}
+
 function prepareImportPreview(value: unknown): ImportPreview | null {
   if (!value || typeof value !== "object") return null;
   const rawReferences = (value as { bookmarkedReferences?: unknown }).bookmarkedReferences;
@@ -257,14 +280,16 @@ function prepareImportPreview(value: unknown): ImportPreview | null {
   let skipped = 0;
   const bookmarks = rawReferences.reduce<ImportedBookmark[]>((items, raw) => {
     if (!raw || typeof raw !== "object") { skipped += 1; return items; }
-    const item = raw as { id?: unknown; title?: unknown; href?: unknown; topic?: unknown; personalNote?: unknown; status?: unknown; savedAt?: unknown };
+    const item = raw as { id?: unknown; title?: unknown; href?: unknown; topic?: unknown; personalNote?: unknown; status?: unknown; savedAt?: unknown; dueDate?: unknown; reminderEnabled?: unknown };
     const byId = typeof item.id === "string" ? literatureReferences.find((reference) => reference.id === item.id) : undefined;
     const matched = byId ?? literatureReferences.find((reference) => reference.title === item.title && reference.href === item.href && reference.domainTitle === item.topic);
     if (!matched) { skipped += 1; return items; }
     const status = typeof item.status === "string" && readingStatuses.includes(item.status as ReadingStatus) ? item.status as ReadingStatus : "Belum dibaca";
     const savedAt = typeof item.savedAt === "string" && !Number.isNaN(Date.parse(item.savedAt)) ? item.savedAt : undefined;
     const note = typeof item.personalNote === "string" ? item.personalNote.slice(0, 280) : "";
-    if (!items.some((entry) => entry.id === matched.id)) items.push({ id: matched.id, note, meta: { status, savedAt } });
+    const dueDate = isDateOnly(item.dueDate) ? item.dueDate : "";
+    const reminderEnabled = dueDate && typeof item.reminderEnabled === "boolean" ? item.reminderEnabled : false;
+    if (!items.some((entry) => entry.id === matched.id)) items.push({ id: matched.id, note, meta: { status, savedAt, dueDate, reminderEnabled } });
     return items;
   }, []);
   return { bookmarks, skipped };
@@ -275,7 +300,7 @@ function downloadReadingNotes(inputs: CalcInputs, playbookProgress: Record<Domai
     app: "EnvSusta",
     exportedAt: new Date().toISOString(),
     bookmarkedTopics: activeDomains,
-    bookmarkedReferences: literatureReferences.filter((reference) => savedReferences.includes(reference.id)).map(({ id, title, note, href, domainTitle }) => ({ id, title, note, href, topic: domainTitle, personalNote: bookmarkNotes[id] ?? "", status: bookmarkMeta[id]?.status ?? "Belum dibaca", savedAt: bookmarkMeta[id]?.savedAt })),
+    bookmarkedReferences: literatureReferences.filter((reference) => savedReferences.includes(reference.id)).map(({ id, title, note, href, domainTitle }) => ({ id, title, note, href, topic: domainTitle, personalNote: bookmarkNotes[id] ?? "", status: bookmarkMeta[id]?.status ?? "Belum dibaca", savedAt: bookmarkMeta[id]?.savedAt, dueDate: bookmarkMeta[id]?.dueDate, reminderEnabled: bookmarkMeta[id]?.reminderEnabled ?? false })),
     appliedPlaybookSteps: playbookProgress,
     methodWorksheet: { eCalcCarbon: inputs },
     note: "Catatan lokal berisi penanda topik, progres panduan penerapan, dan worksheet E-Calc opsional. Faktor pada E-Calc bersifat ilustratif; gunakan faktor resmi, batas organisasi, dan metodologi yang sesuai untuk pelaporan formal.",
@@ -285,6 +310,31 @@ function downloadReadingNotes(inputs: CalcInputs, playbookProgress: Record<Domai
   const anchor = document.createElement("a");
   anchor.href = href;
   anchor.download = "envsusta-catatan-literatur.json";
+  anchor.click();
+  URL.revokeObjectURL(href);
+}
+
+function downloadReadingListMarkdown(references: LiteratureReference[], bookmarkNotes: Record<string, string>, bookmarkMeta: Record<string, BookmarkMeta>) {
+  const grouped = references.reduce<Record<string, LiteratureReference[]>>((groups, reference) => {
+    (groups[reference.domainTitle] ??= []).push(reference);
+    return groups;
+  }, {});
+  const lines = ["# Daftar Bacaan EnvSusta", "", `Diekspor: ${new Date().toLocaleString("id-ID")}`, "", "> Daftar ini tersimpan local-first. Verifikasi versi standar dan ketentuan formal pada sumber primer sebelum digunakan.", ""];
+  Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b, "id")).forEach(([domain, entries]) => {
+    lines.push(`## ${domain}`, "");
+    entries.forEach((reference) => {
+      const meta = bookmarkMeta[reference.id] ?? { status: "Belum dibaca" as ReadingStatus, dueDate: "" };
+      const label = reference.href ? `[${escapeMarkdownText(reference.title)}](${reference.href})` : escapeMarkdownText(reference.title);
+      lines.push(`- **${label}**`, `  - Status: ${meta.status}`, `  - ${dueLabel(meta.dueDate)}`, `  - Rujukan: ${escapeMarkdownText(reference.note)}`);
+      if (bookmarkNotes[reference.id]) lines.push(`  - Catatan pribadi: ${escapeMarkdownText(bookmarkNotes[reference.id])}`);
+      lines.push("");
+    });
+  });
+  const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8" });
+  const href = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.download = "envsusta-daftar-bacaan.md";
   anchor.click();
   URL.revokeObjectURL(href);
 }
@@ -309,6 +359,8 @@ export default function Home() {
   const [bookmarkNotes, setBookmarkNotes] = useState<Record<string, string>>(workspaceSeed.bookmarkNotes);
   const [bookmarkMeta, setBookmarkMeta] = useState<Record<string, BookmarkMeta>>(workspaceSeed.bookmarkMeta);
   const [bookmarkSort, setBookmarkSort] = useState<BookmarkSort>("recent");
+  const [readingStatusFilter, setReadingStatusFilter] = useState<ReadingStatus | "">("");
+  const [readingDomainFilter, setReadingDomainFilter] = useState<DomainId | "">("");
   const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
   const [selectedDomainId, setSelectedDomainId] = useState<DomainId>(workspaceSeed.activeDomains[0] ?? "carbon");
   const [showMethod, setShowMethod] = useState(false);
@@ -356,15 +408,30 @@ export default function Home() {
   const hasActiveFilters = Boolean(searchQuery || selectedStandard || selectedSector || selectedDifficulty || selectedGoal);
   const normalizedReferenceQuery = referenceQuery.trim().toLocaleLowerCase("id-ID");
   const referenceResults = normalizedReferenceQuery.length >= 2 ? literatureReferences.filter((reference) => [reference.title, reference.note, reference.domainTitle].join(" ").toLocaleLowerCase("id-ID").includes(normalizedReferenceQuery)) : [];
+  const readingDomainOptions = useMemo(() => sustainabilityDomains.map((domain) => ({ id: domain.id, label: domain.shortTitle })), []);
   const savedReferenceEntries = useMemo(() => literatureReferences.filter((reference) => savedReferences.includes(reference.id)).sort((a, b) => {
     if (bookmarkSort === "topic") return a.domainTitle.localeCompare(b.domainTitle, "id") || a.title.localeCompare(b.title, "id");
     if (bookmarkSort === "status") return readingStatuses.indexOf(bookmarkMeta[a.id]?.status ?? "Belum dibaca") - readingStatuses.indexOf(bookmarkMeta[b.id]?.status ?? "Belum dibaca") || a.title.localeCompare(b.title, "id");
     return (bookmarkMeta[b.id]?.savedAt ?? "").localeCompare(bookmarkMeta[a.id]?.savedAt ?? "") || savedReferences.indexOf(b.id) - savedReferences.indexOf(a.id);
   }), [savedReferences, bookmarkMeta, bookmarkSort]);
+  const filteredSavedReferenceEntries = useMemo(() => savedReferenceEntries.filter((reference) => (!readingStatusFilter || bookmarkMeta[reference.id]?.status === readingStatusFilter) && (!readingDomainFilter || reference.domainId === readingDomainFilter)), [savedReferenceEntries, readingStatusFilter, readingDomainFilter, bookmarkMeta]);
 
   useEffect(() => {
     if (filteredDomains.length && !filteredDomains.some((domain) => domain.id === selectedDomainId)) setSelectedDomainId(filteredDomains[0].id);
   }, [filteredDomains, selectedDomainId]);
+
+  useEffect(() => {
+    if (activeView !== "learn") return;
+    const today = new Date().toISOString().slice(0, 10);
+    const dueItems = savedReferences.filter((id) => {
+      const meta = bookmarkMeta[id];
+      return meta?.reminderEnabled && meta.dueDate && meta.dueDate <= today && meta.reminderShownOn !== today;
+    });
+    if (!dueItems.length) return;
+    const titles = dueItems.slice(0, 2).map((id) => literatureReferences.find((reference) => reference.id === id)?.title).filter(Boolean).join(" · ");
+    toast(`Pengingat baca: ${titles}${dueItems.length > 2 ? ` dan ${dueItems.length - 2} lainnya` : ""}.`);
+    setBookmarkMeta((current) => ({ ...current, ...Object.fromEntries(dueItems.map((id) => [id, { ...current[id], reminderShownOn: today }])) }));
+  }, [activeView, savedReferences, bookmarkMeta]);
 
   useEffect(() => {
     if (activeView !== "overview") return;
@@ -472,7 +539,7 @@ export default function Home() {
       const isSaved = current.includes(referenceId);
       if (isSaved) setBookmarkNotes((notes) => { const { [referenceId]: _removed, ...remaining } = notes; return remaining; });
       if (isSaved) setBookmarkMeta((meta) => { const { [referenceId]: _removed, ...remaining } = meta; return remaining; });
-      if (!isSaved) setBookmarkMeta((meta) => ({ ...meta, [referenceId]: { status: "Belum dibaca", savedAt: new Date().toISOString() } }));
+      if (!isSaved) setBookmarkMeta((meta) => ({ ...meta, [referenceId]: { status: "Belum dibaca", savedAt: new Date().toISOString(), dueDate: "" } }));
       toast(isSaved ? "Referensi dihapus dari daftar bacaan." : "Referensi disimpan ke daftar bacaan pribadi.");
       return isSaved ? current.filter((id) => id !== referenceId) : [...current, referenceId];
     });
@@ -483,7 +550,30 @@ export default function Home() {
   };
 
   const updateBookmarkStatus = (referenceId: string, status: ReadingStatus) => {
-    setBookmarkMeta((current) => ({ ...current, [referenceId]: { ...(current[referenceId] ?? { savedAt: new Date().toISOString() }), status } }));
+    setBookmarkMeta((current) => ({ ...current, [referenceId]: { ...(current[referenceId] ?? { savedAt: new Date().toISOString(), dueDate: "" }), status } }));
+  };
+
+  const updateBookmarkDueDate = (referenceId: string, dueDate: string) => {
+    setBookmarkMeta((current) => ({
+      ...current,
+      [referenceId]: {
+        ...(current[referenceId] ?? { status: "Belum dibaca", savedAt: new Date().toISOString(), dueDate: "" }),
+        dueDate,
+        reminderEnabled: dueDate ? current[referenceId]?.reminderEnabled ?? false : false,
+        reminderShownOn: undefined,
+      },
+    }));
+  };
+
+  const updateBookmarkReminder = (referenceId: string, reminderEnabled: boolean) => {
+    setBookmarkMeta((current) => ({
+      ...current,
+      [referenceId]: {
+        ...(current[referenceId] ?? { status: "Belum dibaca", savedAt: new Date().toISOString(), dueDate: "" }),
+        reminderEnabled,
+        reminderShownOn: undefined,
+      },
+    }));
   };
 
   const handleImportReadingNotes = (event: ChangeEvent<HTMLInputElement>) => {
@@ -706,7 +796,7 @@ export default function Home() {
           <div className="lesson-actions"><button className="primary-action" onClick={() => activateDomain(selectedDomain.id, "plan")}>Buka panduan terapan <ArrowRight size={17} /></button><button className="quiet-action" onClick={() => activateDomain(selectedDomain.id, "library")}>Lihat ringkasan topik <ArrowRight size={16} /></button></div>
         </article>
       </section>
-      <section className="reference-finder" aria-labelledby="reference-finder-title"><div className="reference-route" aria-label="Rute rujukan"><span>TOPIK</span><i /><span>SUMBER</span><i /><span>CATATAN</span></div><div className="reference-finder-head"><div><span className="section-kicker">TELUSURI RUJUKAN</span><h2 id="reference-finder-title">Cari dokumen dan panduan primer.</h2><p>Telusuri judul, topik, atau istilah seperti GHG, TNFD, air, PROPER, dan circularity. Arahkan kursor atau fokus keyboard ke istilah standar untuk melihat ringkasannya.</p></div><label className="reference-search"><Search size={17} /><input type="search" value={referenceQuery} onChange={(event) => setReferenceQuery(event.currentTarget.value)} placeholder="Cari GHG, ISO, PROPER, LCA…" aria-label="Cari referensi primer" /></label></div><div className="reference-finder-body"><div className="reference-results" aria-live="polite">{normalizedReferenceQuery.length < 2 ? <div className="reference-prompt"><Search size={19} /><b>Mulai dengan dua karakter.</b><p>Hasil akan mencakup dokumen dan panduan lintas seluruh domain EnvSusta.</p></div> : referenceResults.length ? <div className="reference-result-list">{referenceResults.map((reference) => <article key={reference.id}><span>{reference.domainTitle}</span><div><StandardTerm term={reference.title} href={reference.href} /><p>{reference.note}</p></div><button className="reference-save" onClick={() => toggleSavedReference(reference.id)} aria-label={`${savedReferences.includes(reference.id) ? "Hapus" : "Simpan"} ${reference.title} ${savedReferences.includes(reference.id) ? "dari" : "ke"} daftar bacaan`} aria-pressed={savedReferences.includes(reference.id)}>{savedReferences.includes(reference.id) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button></article>)}</div> : <div className="reference-prompt"><CircleHelp size={19} /><b>Belum ada rujukan yang cocok.</b><p>Coba kata kunci yang lebih umum, misalnya “ISO”, “air”, atau “karbon”.</p></div>}</div><aside className="reading-list"><span>DAFTAR BACAAN PRIBADI</span><b>{savedReferenceEntries.length} referensi disimpan</b><div className="reading-list-tools"><label><span>URUTKAN</span><select value={bookmarkSort} onChange={(event) => setBookmarkSort(event.currentTarget.value as BookmarkSort)} aria-label="Urutkan daftar bacaan"><option value="recent">Terbaru disimpan</option><option value="topic">Menurut topik</option><option value="status">Menurut status baca</option></select></label><label className="import-reading"><Upload size={13} /> Impor<input type="file" accept="application/json,.json" onChange={handleImportReadingNotes} /></label></div>{importPreview && <div className="import-preview" role="status"><b>Pratinjau pemulihan</b><p>{importPreview.bookmarks.length} referensi siap ditambahkan tanpa menimpa catatan lokal yang sudah ada.{importPreview.skipped ? ` ${importPreview.skipped} item dilewati.` : ""}</p><div><button className="primary-action" onClick={applyImportPreview}>Pulihkan daftar</button><button className="quiet-action" onClick={() => setImportPreview(null)}>Batal</button></div></div>}{savedReferenceEntries.length ? <ul>{savedReferenceEntries.map((reference) => <li key={reference.id}><div className="reading-list-item-head"><span>{reference.domainTitle}</span><StandardTerm term={reference.title} href={reference.href} /><button onClick={() => toggleSavedReference(reference.id)} aria-label={`Hapus ${reference.title} dari daftar bacaan`}><X size={13} /></button></div><label className="bookmark-status"><span>STATUS BACA</span><select value={bookmarkMeta[reference.id]?.status ?? "Belum dibaca"} onChange={(event) => updateBookmarkStatus(reference.id, event.currentTarget.value as ReadingStatus)} aria-label={`Status baca ${reference.title}`}>{readingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><small>disimpan {formatBookmarkDate(bookmarkMeta[reference.id]?.savedAt)}</small></label><label className="bookmark-note"><span>CATATAN PRIBADI</span><textarea value={bookmarkNotes[reference.id] ?? ""} onChange={(event) => updateBookmarkNote(reference.id, event.currentTarget.value)} maxLength={280} placeholder="Mengapa referensi ini relevan bagi Anda?" aria-label={`Catatan pribadi untuk ${reference.title}`} /><small>{(bookmarkNotes[reference.id] ?? "").length}/280</small></label></li>)}</ul> : <p>Simpan referensi dengan ikon bookmark, atau pulihkan file catatan sebelumnya. Daftar ini tersimpan di perangkat Anda.</p>}</aside></div></section>
+      <section className="reference-finder" aria-labelledby="reference-finder-title"><div className="reference-route" aria-label="Rute rujukan"><span>TOPIK</span><i /><span>SUMBER</span><i /><span>CATATAN</span></div><div className="reference-finder-head"><div><span className="section-kicker">TELUSURI RUJUKAN</span><h2 id="reference-finder-title">Cari dokumen dan panduan primer.</h2><p>Telusuri judul, topik, atau istilah seperti GHG, TNFD, air, PROPER, dan circularity. Arahkan kursor atau fokus keyboard ke istilah standar untuk melihat ringkasannya.</p></div><label className="reference-search"><Search size={17} /><input type="search" value={referenceQuery} onChange={(event) => setReferenceQuery(event.currentTarget.value)} placeholder="Cari GHG, ISO, PROPER, LCA…" aria-label="Cari referensi primer" /></label></div><div className="reference-finder-body"><div className="reference-results" aria-live="polite">{normalizedReferenceQuery.length < 2 ? <div className="reference-prompt"><Search size={19} /><b>Mulai dengan dua karakter.</b><p>Hasil akan mencakup dokumen dan panduan lintas seluruh domain EnvSusta.</p></div> : referenceResults.length ? <div className="reference-result-list">{referenceResults.map((reference) => <article key={reference.id}><span>{reference.domainTitle}</span><div><StandardTerm term={reference.title} href={reference.href} /><p>{reference.note}</p></div><button className="reference-save" onClick={() => toggleSavedReference(reference.id)} aria-label={`${savedReferences.includes(reference.id) ? "Hapus" : "Simpan"} ${reference.title} ${savedReferences.includes(reference.id) ? "dari" : "ke"} daftar bacaan`} aria-pressed={savedReferences.includes(reference.id)}>{savedReferences.includes(reference.id) ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}</button></article>)}</div> : <div className="reference-prompt"><CircleHelp size={19} /><b>Belum ada rujukan yang cocok.</b><p>Coba kata kunci yang lebih umum, misalnya “ISO”, “air”, atau “karbon”.</p></div>}</div><aside className="reading-list"><span>DAFTAR BACAAN PRIBADI</span><b>{savedReferenceEntries.length} referensi disimpan</b><p className="reading-list-hint">Target dan pengingat tampil saat EnvSusta dibuka di perangkat ini; pengingat tidak berjalan ketika aplikasi tertutup.</p><div className="reading-list-tools"><label><span>URUTKAN</span><select value={bookmarkSort} onChange={(event) => setBookmarkSort(event.currentTarget.value as BookmarkSort)} aria-label="Urutkan daftar bacaan"><option value="recent">Terbaru disimpan</option><option value="topic">Menurut topik</option><option value="status">Menurut status baca</option></select></label><label><span>STATUS</span><select value={readingStatusFilter} onChange={(event) => setReadingStatusFilter(event.currentTarget.value as ReadingStatus | "")} aria-label="Filter status baca"><option value="">Semua status</option>{readingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label><label><span>DOMAIN</span><select value={readingDomainFilter} onChange={(event) => setReadingDomainFilter(event.currentTarget.value as DomainId | "")} aria-label="Filter domain bacaan"><option value="">Semua domain</option>{readingDomainOptions.map((domain) => <option key={domain.id} value={domain.id}>{domain.label}</option>)}</select></label><button className="markdown-export" type="button" onClick={() => downloadReadingListMarkdown(savedReferenceEntries, bookmarkNotes, bookmarkMeta)} disabled={!savedReferenceEntries.length}><Download size={13} /> Markdown</button><label className="import-reading"><Upload size={13} /> Impor<input type="file" accept="application/json,.json" onChange={handleImportReadingNotes} /></label></div>{importPreview && <div className="import-preview" role="status"><b>Pratinjau pemulihan</b><p>{importPreview.bookmarks.length} referensi siap ditambahkan tanpa menimpa catatan lokal yang sudah ada.{importPreview.skipped ? ` ${importPreview.skipped} item dilewati.` : ""}</p><div><button className="primary-action" onClick={applyImportPreview}>Pulihkan daftar</button><button className="quiet-action" onClick={() => setImportPreview(null)}>Batal</button></div></div>}{savedReferenceEntries.length ? filteredSavedReferenceEntries.length ? <ul>{filteredSavedReferenceEntries.map((reference) => <li key={reference.id}><div className="reading-list-item-head"><span>{reference.domainTitle}</span><StandardTerm term={reference.title} href={reference.href} /><button onClick={() => toggleSavedReference(reference.id)} aria-label={`Hapus ${reference.title} dari daftar bacaan`}><X size={13} /></button></div><label className="bookmark-status"><span>STATUS BACA</span><select value={bookmarkMeta[reference.id]?.status ?? "Belum dibaca"} onChange={(event) => updateBookmarkStatus(reference.id, event.currentTarget.value as ReadingStatus)} aria-label={`Status baca ${reference.title}`}>{readingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select><small>disimpan {formatBookmarkDate(bookmarkMeta[reference.id]?.savedAt)}</small></label><div className="bookmark-target"><label><span>TARGET BACA</span><input type="date" value={bookmarkMeta[reference.id]?.dueDate ?? ""} onChange={(event) => updateBookmarkDueDate(reference.id, event.currentTarget.value)} aria-label={`Target baca ${reference.title}`} /></label><label className="bookmark-reminder"><input type="checkbox" checked={Boolean(bookmarkMeta[reference.id]?.reminderEnabled)} disabled={!bookmarkMeta[reference.id]?.dueDate} onChange={(event) => updateBookmarkReminder(reference.id, event.currentTarget.checked)} /><span>Ingatkan di aplikasi</span></label><small className={bookmarkMeta[reference.id]?.dueDate && bookmarkMeta[reference.id]?.dueDate <= new Date().toISOString().slice(0, 10) ? "due-soon" : ""}>{dueLabel(bookmarkMeta[reference.id]?.dueDate)}</small></div><label className="bookmark-note"><span>CATATAN PRIBADI</span><textarea value={bookmarkNotes[reference.id] ?? ""} onChange={(event) => updateBookmarkNote(reference.id, event.currentTarget.value)} maxLength={280} placeholder="Mengapa referensi ini relevan bagi Anda?" aria-label={`Catatan pribadi untuk ${reference.title}`} /><small>{(bookmarkNotes[reference.id] ?? "").length}/280</small></label></li>)}</ul> : <div className="reading-filter-empty" role="status"><b>Tidak ada referensi untuk filter ini.</b><p>Ubah status atau domain untuk melihat seluruh daftar bacaan yang tersimpan.</p><button className="quiet-action" type="button" onClick={() => { setReadingStatusFilter(""); setReadingDomainFilter(""); }}>Reset filter</button></div> : <p>Simpan referensi dengan ikon bookmark, atau pulihkan file catatan sebelumnya. Daftar ini tersimpan di perangkat Anda.</p>}</aside></div></section>
     </>
   );
 

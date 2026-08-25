@@ -174,8 +174,19 @@
 - [x] Menambahkan status baca dan waktu simpan yang kompatibel dengan bookmark lama.
 - [x] Menambahkan pilihan urut berdasarkan terbaru, topik, dan status baca.
 - [x] Menambahkan impor file catatan dengan validasi, pratinjau, dan pemulihan local-first.
-- [ ] Memvalidasi persistensi, pengurutan, impor, responsivitas, build, dan deployment publik.
+- [x] Memvalidasi persistensi, pengurutan, impor, responsivitas, build, dan deployment publik.
 
 > Audit visual: panel daftar bacaan menampilkan kontrol urut dan impor secara ringkas di desktop serta mobile. Rute topik → sumber → catatan dan penanda spesimen aktif kini tetap terlihat pada layar sempit tanpa overflow.
 
 > Audit pemulihan: ekspor baru menyertakan id referensi, status, waktu simpan, dan catatan pribadi; impor menerima file JSON EnvSusta, memvalidasi setiap referensi terhadap registry terkini, memberi pratinjau, dan melakukan merge tanpa menimpa catatan lokal yang sudah ada.
+
+> Verifikasi publik awal: versi publik menampilkan penanda spesimen aktif, pilihan urut terbaru/topik/status, serta kontrol impor pada Daftar Bacaan Pribadi. Kontrol bookmark tetap dapat diakses dari rujukan primer pada modul aktif.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `82205e6` sukses. Modul Literatur publik memuat status baca, urutan daftar, kontrol impor, dan penanda spesimen aktif pada rute belajar.
+
+# Filter, Target Baca, dan Ekspor Markdown
+
+- [x] Menambahkan filter daftar bacaan berdasarkan status baca dan domain.
+- [x] Menambahkan target tanggal serta penanda pengingat lokal pada bookmark.
+- [x] Menambahkan ekspor daftar bacaan dalam format Markdown.
+- [ ] Memvalidasi filter, pengingat, ekspor, responsivitas, build, dan deployment publik.
