@@ -225,6 +225,7 @@ export default function Home() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty | "">("");
   const [selectedGoal, setSelectedGoal] = useState<UserGoal | "">("");
   const [activeLandingAnchor, setActiveLandingAnchor] = useState<LandingAnchorId>("tujuan");
+  const [isAnchorNavigating, setIsAnchorNavigating] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -290,6 +291,17 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const navigateLandingAnchor = (anchor: (typeof landingAnchorItems)[number]) => {
+    const target = document.getElementById(anchor.targetId);
+    if (!target) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setActiveLandingAnchor(anchor.id);
+    setIsAnchorNavigating(true);
+    window.history.pushState(null, "", `#${anchor.targetId}`);
+    target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    window.setTimeout(() => setIsAnchorNavigating(false), reduceMotion ? 0 : 560);
+  };
+
   const activateDomain = (domainId: DomainId, destination?: ViewId) => {
     setSelectedDomainId(domainId);
     setActiveDomains((current) => (current.includes(domainId) ? current : [...current, domainId]));
@@ -339,10 +351,10 @@ export default function Home() {
 
   const renderOverview = () => (
     <>
-      <header className="landing-header" aria-label="Navigasi landing page">
+      <header className={`landing-header ${isAnchorNavigating ? "is-routing" : ""}`} aria-label="Navigasi landing page">
         <a className="landing-header-brand" href="#workspace-main"><img src={envSustaAssets.orbitMark} alt="Mark orbit terbuka EnvSusta" /><span>EnvSusta<small>FIELD GUIDE</small></span></a>
-        <nav aria-label="Jelajahi landing page">{landingAnchorItems.map((item) => <a key={item.id} href={`#${item.targetId}`} className={activeLandingAnchor === item.id ? "active" : ""} aria-current={activeLandingAnchor === item.id ? "location" : undefined} onClick={() => setActiveLandingAnchor(item.id)}>{item.label}</a>)}</nav>
-        <span className="landing-header-status"><i />{landingAnchorItems.find((item) => item.id === activeLandingAnchor)?.label}</span>
+        <nav aria-label="Jelajahi landing page">{landingAnchorItems.map((item) => <a key={item.id} href={`#${item.targetId}`} className={activeLandingAnchor === item.id ? "active" : ""} aria-current={activeLandingAnchor === item.id ? "location" : undefined} onClick={(event) => { event.preventDefault(); navigateLandingAnchor(item); }}>{item.label}</a>)}</nav>
+        <span className="landing-header-status" aria-live="polite"><i />{landingAnchorItems.find((item) => item.id === activeLandingAnchor)?.label}</span>
         <button className="landing-header-cta" onClick={() => goTo("library")}>Masuk tools <ArrowRight size={15} /></button>
       </header>
       <section className="welcome-panel workspace-hero">

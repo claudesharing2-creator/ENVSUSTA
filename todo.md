@@ -115,3 +115,15 @@
 > Uji scroll lanjutan: indikator berpindah ke Topik saat peta domain mendominasi viewport dan ke Metode saat section E-Calc menjadi konteks baca utama. Header tetap sticky sehingga status dapat dibaca sepanjang rute.
 
 > Verifikasi mobile: navigasi anchor berubah menjadi status ringkas dengan titik Canopy Teal dan nama section aktif; tampilan ini tidak mengganggu CTA Masuk tools pada layar sempit.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `d2970c5` sukses. Landing publik menampilkan anchor Tujuan, Topik, dan Metode dengan indikator aktif berbasis section yang terlihat.
+
+# Transisi Anchor Halus
+
+- [x] Menentukan perilaku scroll anchor beserta fallback reduced motion.
+- [x] Menerapkan transisi scroll, update URL, dan umpan balik visual anchor.
+- [ ] Memvalidasi navigasi anchor pada desktop/mobile serta build dan deployment publik.
+
+> Verifikasi interaksi: klik anchor kini melakukan `scrollIntoView` dengan perilaku smooth, memperbarui hash rute, dan memicu pulse singkat pada status aktif. Pada reduced motion, perpindahan dibuat instan tanpa animasi rute.
+
+> Verifikasi mobile: status section, CTA, dan header sticky tetap termuat rapi setelah umpan balik rute ditambahkan.
