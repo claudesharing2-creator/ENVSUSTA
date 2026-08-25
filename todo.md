@@ -148,8 +148,21 @@
 - [x] Menetapkan kamus istilah standar dan ringkasan tooltip yang ringkas.
 - [x] Menambahkan pencarian khusus pada rujukan primer beserta kondisi tanpa hasil.
 - [x] Menambahkan bookmark referensi local-first dan panel daftar bacaan pribadi.
-- [ ] Memvalidasi tooltip, keyboard, persistensi lokal, responsivitas, build, dan deployment publik.
+- [x] Memvalidasi tooltip, keyboard, persistensi lokal, responsivitas, build, dan deployment publik.
 
 > Audit visual: kartu sumber primer memiliki tombol bookmark yang jelas. Panel Reference Finder tampil sebagai jalur terpisah dari materi dan daftar bacaan tetap berada dekat kolom pencarian; susunan beralih menjadi satu kolom pada mobile tanpa overflow.
 
 > Audit aksesibilitas: tooltip ditampilkan saat hover atau fokus keyboard, tombol bookmark menggunakan status `aria-pressed`, pencarian memiliki label yang dapat dibaca pembaca layar, dan daftar bacaan menjelaskan bahwa data disimpan lokal.
+
+> Verifikasi publik: workflow GitHub Pages untuk commit `f12182d` sukses. Modul Literatur publik memuat bookmark per referensi, kolom pencarian Reference Finder, kondisi tanpa hasil, dan panel daftar bacaan pribadi.
+
+# Catatan Pribadi Bookmark
+
+- [x] Menambahkan struktur catatan per referensi yang kompatibel dengan bookmark lama.
+- [x] Menambahkan editor catatan singkat pada Daftar Bacaan Pribadi.
+- [x] Menyertakan catatan pribadi di autosave dan ekspor catatan literatur.
+- [ ] Memvalidasi persistensi, responsivitas, build, dan deployment publik.
+
+> Audit visual: panel rujukan memakai penanda rute topik → sumber → catatan yang konsisten dengan Field Guide. Pada mobile, pencarian, daftar bacaan, dan ruang catatan tetap tersusun satu kolom tanpa overflow.
+
+> Audit model lokal: bookmark lama tanpa catatan tetap valid; catatan dibatasi 280 karakter, dibersihkan ketika bookmark dihapus, serta ditambahkan sebagai `personalNote` saat ekspor catatan literatur.

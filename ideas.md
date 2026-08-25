@@ -81,6 +81,7 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Mark orbit terbuka diulang sebagai penanda rute baca dan konteks metode, bukan hanya sebagai dekorasi logo.
 - Jalur baca aktif menghubungkan pilihan filter, spesimen topik, konteks metode/sumber, dan langkah terapan melalui penanda orbit serta titik-titik rute yang terlihat.
 - Topik aktif diperlakukan sebagai spesimen lapangan dengan hierarki, metadata, dan cue metode yang lebih kuat daripada kartu katalog lain.
+- Panel rujukan memakai bahasa Indonesia editorial dan rute eksplisit topik → sumber → catatan; pencarian serta bookmark diperlakukan sebagai artefak field library, bukan utilitas SaaS terpisah.
 
 ## Landing Page EnvSusta
 
