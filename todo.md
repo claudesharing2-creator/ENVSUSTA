@@ -198,4 +198,6 @@
 - [x] Menambahkan ringkasan visual jumlah bahan bacaan pada setiap status baca.
 - [x] Menambahkan agenda mingguan untuk target tanggal baca yang telah ditentukan.
 - [x] Menjadikan ekspor Markdown mengikuti status dan domain pada filter aktif.
-- [ ] Memvalidasi ringkasan, agenda, ekspor terfilter, responsivitas, build, dan deployment publik.
+- [x] Memvalidasi ringkasan, agenda, ekspor terfilter, responsivitas, build, dan deployment publik.
+
+> Verifikasi 25 Agustus 2026: ringkasan mengikuti status bookmark aktual; agenda Senin–Minggu menampilkan target pada tanggalnya; ekspor Markdown dengan filter domain Air memuat konteks filter dan hanya referensi yang sesuai. Pemeriksaan desktop/mobile, TypeScript, build GitHub Pages, dan deployment publik commit `93e18a0` berhasil.
