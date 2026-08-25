@@ -225,3 +225,12 @@
 - [x] Menguji seluruh domain, keyboard, desktop/mobile, build, dan deployment publik.
 
 > Verifikasi 25 Agustus 2026: navigasi domain diuji melalui klik dan Enter; viewport 430 px tidak lagi menampilkan garis dekoratif pada label aktif. Rute belajar pada setiap domain kini menjelaskan pertanyaan awal, hal yang perlu dipahami, data awal, dan tindakan awal. Pemeriksaan TypeScript, build produksi, dan GitHub Pages commit `d3c1837` berhasil.
+
+# Jalur Belajar Berdasarkan Tujuan
+
+- [x] Memetakan domain, sumber, dan panduan terapan yang relevan untuk tujuan PROPER, efisiensi sumber daya, dan disclosure.
+- [x] Merancang pemilih tujuan serta urutan jalur belajar yang dapat diikuti secara lokal.
+- [x] Menambahkan rekomendasi materi, tindakan berikutnya, dan progres jalur personal.
+- [x] Memvalidasi perpindahan tujuan, progres, keyboard, desktop/mobile, build, dan deployment publik.
+
+> Verifikasi 25 Agustus 2026: rute PROPER berhasil memulihkan progres 1/7 dan mengarahkan materi ke tahap Energi berikutnya. Pergantian ke rute efisiensi tidak menghapus progres PROPER dan mempersempit Navigator ke domain yang relevan. Pemilih tujuan, rute aktif, dan mobile layout telah diperiksa; format, TypeScript, dan build GitHub Pages juga berhasil.

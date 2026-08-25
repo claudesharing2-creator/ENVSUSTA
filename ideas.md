@@ -86,6 +86,14 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Keadaan kosong pada rujukan diperlakukan sebagai momen field library dengan cue sumber, rute baca, dan affordance catatan, bukan sebagai ruang utilitas yang kosong.
 - Status materi aktif, hover, dan fokus keyboard harus memiliki peran visual yang berbeda; dekorasi rute tidak boleh melewati atau menutupi label navigasi.
 - Setiap domain menjelaskan rute belajar dalam urutan yang konsisten: pahami konsep, siapkan data atau bukti, lakukan satu tindakan awal, lalu buka panduan terapan bila siap.
+- Jalur tujuan memakai tiga pilihan kerja yang eksplisit—PROPER, efisiensi sumber daya, dan disclosure—lalu menampilkan urutan domain yang dikurasi, tahap berikutnya, dan progres lokal. Ia bukan dashboard atau wizard yang memaksa pengguna; setiap tahap tetap dapat dibuka, dibaca, atau ditandai selesai secara mandiri.
+- Urutan jalur mengutamakan fondasi sebelum klaim: SML dan evidence sebelum PROPER, baseline serta aliran sumber daya sebelum proyek efisiensi, dan definisi KPI serta inventaris sebelum disclosure. Status progres hanya menunjukkan penanda baca/penerapan pengguna, bukan penilaian kepatuhan.
+
+## Style Decisions
+
+- Jalur bertitik memegang peran navigasi: ia menghubungkan tujuan kerja, filter topik, spesimen aktif, sumber primer, dan praktik.
+- Domain dalam jalur personal memperoleh label tahap yang tenang; spesimen aktif tetap memegang bobot visual tertinggi dibanding waypoint lain.
+- Canopy Teal dipakai untuk orientasi rute, tahap aktif, dan progres; paper sand tetap menjadi permukaan utama workspace.
 
 ## Landing Page EnvSusta
 
