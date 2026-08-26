@@ -94,6 +94,9 @@ Mark berbentuk **jejak orbit yang terbuka**: tiga lengkung organik yang mengitar
 - Jalur bertitik memegang peran navigasi: ia menghubungkan tujuan kerja, filter topik, spesimen aktif, sumber primer, dan praktik.
 - Domain dalam jalur personal memperoleh label tahap yang tenang; spesimen aktif tetap memegang bobot visual tertinggi dibanding waypoint lain.
 - Canopy Teal dipakai untuk orientasi rute, tahap aktif, dan progres; paper sand tetap menjadi permukaan utama workspace.
+- Rail workspace adalah field index: pilihan aktif harus menyatu dengan jalur titik/orbit, bukan terbaca sebagai sidebar dashboard generik.
+- IBM Plex Mono hanya dipakai untuk metadata, nomor, satuan, sumber, dan cue audit; hierarchy bacaan utama dibangun melalui Manrope, bobot, dan ruang.
+- Pelajaran panjang dipisahkan dengan ritme editorial antara narasi, metadata metode, contoh situasi kerja, batas klaim, sumber primer, dan tindakan berikutnya.
 
 ## Landing Page EnvSusta
 

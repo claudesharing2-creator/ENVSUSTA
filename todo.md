@@ -234,3 +234,12 @@
 - [x] Memvalidasi perpindahan tujuan, progres, keyboard, desktop/mobile, build, dan deployment publik.
 
 > Verifikasi 25 Agustus 2026: rute PROPER berhasil memulihkan progres 1/7 dan mengarahkan materi ke tahap Energi berikutnya. Pergantian ke rute efisiensi tidak menghapus progres PROPER dan mempersempit Navigator ke domain yang relevan. Pemilih tujuan, rute aktif, dan mobile layout telah diperiksa; format, TypeScript, dan build GitHub Pages juga berhasil.
+
+# Materi Pembelajaran Substantif
+
+- [x] Mengaudit apakah materi domain tampil dengan benar dan mengidentifikasi bagian yang saat ini hanya berfungsi sebagai checklist atau metadata.
+- [x] Menyusun struktur pelajaran yang menjelaskan konsep, cara kerja, contoh bukti, batas metode, dan langkah penerapan untuk setiap domain.
+- [x] Menambahkan materi yang dapat dibaca langsung beserta tautan sumber primer yang relevan.
+- [x] Memvalidasi semua domain, tautan sumber, keyboard, desktop/mobile, build, dan deployment publik.
+
+> Verifikasi 26 Agustus 2026: sepuluh domain memiliki pelajaran berisi orientasi, tiga bab inti, situasi kerja, batas metode atau klaim, dan sumber primer. Bug yang membatalkan pilihan domain Literatur di luar filter tujuan telah diperbaiki. Literatur Karbon dan PROPER diuji; desktop dan viewport mobile 430 px tidak menunjukkan overflow. CI repository lolos pemeriksaan format, TypeScript, dan build GitHub Pages.

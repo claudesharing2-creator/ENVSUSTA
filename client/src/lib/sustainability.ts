@@ -240,6 +240,117 @@ export const sustainabilityDomains: SustainabilityDomain[] = [
   },
 ];
 
+export type DomainLesson = {
+  opening: string;
+  chapters: { title: string; body: string }[];
+  situation: { title: string; body: string };
+  caution: string;
+};
+
+// prettier-ignore
+export const domainLessons: Record<DomainId, DomainLesson> = {
+  carbon: {
+    opening: "Inventaris GRK bukan sekadar hasil kalkulator. Ia adalah cerita yang dapat ditelusuri tentang aktivitas organisasi, batas yang dipakai, faktor yang dipilih, dan asumsi yang tersisa.",
+    chapters: [
+      { title: "Tentukan apa yang sedang dihitung", body: "Mulailah dengan periode, entitas, lokasi, dan aktivitas yang masuk inventaris. Tanpa batas organisasi yang konsisten, angka antarperiode tidak dapat dibandingkan secara bermakna." },
+      { title: "Pisahkan sumber agar keputusan terlihat", body: "Scope 1, Scope 2, dan Scope 3 menjawab pertanyaan yang berbeda. Pemisahan ini membantu tim melihat apakah perubahan perlu dicari pada bahan bakar, energi yang dibeli, atau aktivitas rantai nilai." },
+      { title: "Jaga inventaris gross tetap utuh", body: "Gross emissions menunjukkan emisi sebelum offset, credit, allowance, atau klaim lain dipertimbangkan. Unit karbon perlu dicatat pada ledger terpisah agar pembaca tidak mengira emisi fisik telah hilang." },
+    ],
+    situation: { title: "Situasi kerja", body: "Sebuah lokasi memiliki tagihan listrik dan pembelian solar, tetapi data perjalanan belum lengkap. Laporkan cakupan yang tersedia, dokumentasikan data yang hilang, dan jangan mengisi kekosongan dengan klaim pengurangan." },
+    caution: "Gunakan faktor emisi, GWP, metode Scope 2, dan batas pelaporan yang sesuai periode serta konteks formal Anda. Worksheet E-Calc hanya ilustrasi pembelajaran.",
+  },
+  energy: {
+    opening: "Manajemen energi dimulai dengan memahami pola konsumsi dan penggeraknya, bukan dengan memilih teknologi terlebih dahulu.",
+    chapters: [
+      { title: "Bangun baseline yang adil", body: "Konsumsi energi perlu dibaca bersama driver seperti output, jam operasi, luas bangunan, atau okupansi. Perubahan kWh total tidak otomatis menunjukkan perbaikan jika aktivitas operasional juga berubah." },
+      { title: "Temukan penggunaan signifikan", body: "Kelompokkan proses, peralatan, atau lokasi yang menyerap energi paling besar atau paling sulit dikendalikan. Dari sini audit dan pengumpulan data dapat difokuskan pada hotspot yang nyata." },
+      { title: "Ukur perubahan sebelum menyebut penghematan", body: "Simpan kondisi awal, tindakan yang dilakukan, periode pengukuran, dan perubahan proses. EnPI dan baseline membantu tim membedakan dampak tindakan dari perubahan produksi atau cuaca." },
+    ],
+    situation: { title: "Situasi kerja", body: "Tagihan listrik turun pada bulan ketika produksi juga turun. Jangan langsung menyebut efisiensi; bandingkan terhadap output atau jam operasi dan catat perubahan kondisi." },
+    caution: "ISO 50001 memberi kerangka sistem manajemen dan perbaikan berkelanjutan, bukan daftar teknologi wajib atau jaminan penghematan tertentu.",
+  },
+  water: {
+    opening: "Air harus dibaca sebagai aliran fisik sekaligus isu lokasi. Volume yang sama dapat memiliki arti risiko yang berbeda pada catchment yang berbeda.",
+    chapters: [
+      { title: "Gambarkan water balance", body: "Petakan sumber air, titik penggunaan utama, air yang keluar sebagai produk, evaporasi, efluen, dan kehilangan yang belum dijelaskan. Neraca sederhana sering kali lebih berguna daripada angka total tanpa jalur aliran." },
+      { title: "Bedakan volume dengan dampak", body: "Withdrawal, consumption, discharge, dan kualitas efluen tidak boleh ditukar satu sama lain. Data volume perlu disertai lokasi, metode ukur, periode, serta konteks izin dan baku mutu." },
+      { title: "Baca risiko pada skala lokasi", body: "Risiko air terkait catchment, pengguna lain, musim, dan ketergantungan proses. Karena itu, prioritas tidak selalu jatuh pada lokasi dengan volume pengambilan terbesar." },
+    ],
+    situation: { title: "Situasi kerja", body: "Satu pabrik memiliki meter intake tetapi belum memisahkan air proses dan domestik. Mulai dengan sub-meter atau estimasi yang diberi label, lalu tetapkan kapan estimasi harus diganti dengan pengukuran." },
+    caution: "Angka air tanpa lokasi, periode, metodologi, dan batas sistem tidak cukup untuk membaca kinerja atau membuat klaim penurunan dampak.",
+  },
+  waste: {
+    opening: "Pengelolaan limbah yang baik menelusuri bagaimana material menjadi limbah, bukan hanya menunggu angka tonase di akhir proses.",
+    chapters: [
+      { title: "Kenali aliran dan tingkat risikonya", body: "Pisahkan limbah menurut sumber, komposisi, karakteristik berbahaya, dan jalur akhir. Pemetaan ini membantu tim membedakan masalah proses, masalah bahan, dan masalah pengelolaan pihak ketiga." },
+      { title: "Dahulukan pencegahan", body: "Pencegahan dan pengurangan di sumber berada sebelum reuse, recycling, dan disposal. Material yang tidak pernah menjadi limbah umumnya memberi dampak yang lebih baik daripada sekadar mengalihkan limbah setelah terbentuk." },
+      { title: "Verifikasi jalur pihak ketiga", body: "Saat limbah diangkut atau diolah vendor, simpan manifest, izin, bukti penerimaan, dan informasi operasi pemulihan atau pembuangan. Pengalihan tanggung jawab fisik tidak menghapus kebutuhan due diligence." },
+    ],
+    situation: { title: "Situasi kerja", body: "Tim memiliki angka 'recycle' dari vendor tetapi tanpa bukti operasi akhir. Catat status sebagai belum terverifikasi dan minta dokumen alur pengelolaan sebelum memasukkan klaim diversion." },
+    caution: "Jangan mencampur efluen dengan limbah padat atau mengklaim diversion tanpa definisi, tonase, dan bukti operasi yang konsisten.",
+  },
+  materials: {
+    opening: "Circularity adalah cara membaca nilai material sepanjang alirannya: dari pembelian, pemakaian, scrap, hingga penggunaan kembali atau akhir masa pakai.",
+    chapters: [
+      { title: "Ikuti aliran material", body: "Pilih satu material dominan lalu telusuri berapa yang masuk, berubah menjadi produk, menjadi scrap, disimpan, atau keluar. Material flow membuat kehilangan nilai dan titik intervensi terlihat." },
+      { title: "Jangan sempit pada recycled content", body: "Daya tahan, repairability, reuse, modularitas, disassembly, dan recovery dapat sama pentingnya dengan kandungan daur ulang. Pilihan strategi bergantung pada fungsi produk dan batas sistem yang dipakai." },
+      { title: "Tetapkan arti metrik", body: "Sebelum melaporkan recovery rate atau recycled content, jelaskan massa yang dihitung, tahap daur hidup, metode alokasi, dan bukti pemasok. Metrik tanpa batas dapat memberi kesan sirkular yang berlebihan." },
+    ],
+    situation: { title: "Situasi kerja", body: "Scrap produksi meningkat setelah pergantian pemasok. Pisahkan apakah masalah berasal dari spesifikasi, set-up proses, kualitas material, atau cara penimbangan sebelum memilih solusi." },
+    caution: "Klaim circularity bukan pengganti pembuktian penurunan dampak lingkungan secara keseluruhan; keduanya dapat membutuhkan analisis yang berbeda.",
+  },
+  lca: {
+    opening: "LCA membantu membuat keputusan produk lebih terstruktur dengan melihat input, emisi, dan dampak sepanjang siklus hidup, bukan hanya pada satu tahap produksi.",
+    chapters: [
+      { title: "Tulis goal dan functional unit", body: "Goal menjelaskan keputusan yang ingin didukung, sedangkan functional unit menyatakan layanan yang dibandingkan. Keduanya menentukan data, batas sistem, dan apakah suatu perbandingan masuk akal." },
+      { title: "Bangun inventori dengan kualitas data terlihat", body: "Pisahkan data primer dari data sekunder, catat periode dan geografi, lalu dokumentasikan asumsi. Life cycle inventory yang transparan lebih berguna daripada model kompleks dengan asal data yang tidak jelas." },
+      { title: "Gunakan hotspot untuk belajar", body: "Hasil LCA membantu mengarahkan perhatian ke tahap atau input yang dominan. Hasil tidak boleh dipakai membandingkan produk secara publik tanpa aturan, functional unit, dan tinjauan yang sesuai." },
+    ],
+    situation: { title: "Situasi kerja", body: "Tim ingin membandingkan dua kemasan. Pastikan keduanya menyediakan fungsi yang sama, tentukan akhir masa pakai yang realistis, dan jangan hanya membandingkan berat material." },
+    caution: "ISO 14040 dan ISO 14044 adalah kerangka dan persyaratan metode; EnvSusta merangkum orientasi belajar, bukan menggantikan studi LCA atau critical review.",
+  },
+  nature: {
+    opening: "Isu nature dimulai dari hubungan organisasi dengan lokasi dan rantai nilai: apa yang bergantung pada alam, apa yang terdampak, dan siapa yang terdampak bersama.",
+    chapters: [
+      { title: "Mulai dari lokasi dan value chain", body: "Petakan lokasi operasi, pemasok, komoditas, dan koneksi pada lahan, air, hutan, atau habitat. Langkah ini membantu tim melihat di mana asesmen perlu diprioritaskan." },
+      { title: "Gunakan LEAP sebagai urutan pertanyaan", body: "Locate, Evaluate, Assess, dan Prepare membantu menghubungkan interface dengan alam, dependencies, impacts, risks, opportunities, respons, dan disclosure. Ia adalah pendekatan due diligence, bukan skor biodiversitas tunggal." },
+      { title: "Urutkan respons dengan hati-hati", body: "Hindari dan kurangi dampak terlebih dahulu; pemulihan atau kontribusi tambahan tidak boleh dipakai untuk mengabaikan pengendalian dampak langsung. Libatkan pemangku kepentingan yang terdampak dalam konteks lokasi." },
+    ],
+    situation: { title: "Situasi kerja", body: "Pemasok bahan berbasis alam berada di beberapa wilayah. Mulai dengan daftar pemasok dan komoditas, lalu tentukan lokasi yang perlu data lebih dalam daripada langsung membuat klaim 'nature positive'." },
+    caution: "Konteks ekologi dan sosial sangat lokal; jangan menggeneralisasi risiko nature hanya dari sektor atau memakai satu indikator untuk seluruh lokasi.",
+  },
+  esg: {
+    opening: "SML, governance, dan disclosure membuat informasi lingkungan dapat dipercaya karena setiap klaim memiliki definisi, pemilik, periode, pengendalian, dan bukti.",
+    chapters: [
+      { title: "Hubungkan aktivitas dengan dampak", body: "ASDAM membantu mengaitkan aktivitas, aspek, dampak, pengendalian, dan prioritas. Gunakan proses ini untuk memilih isu yang perlu dikelola, bukan hanya untuk mengisi daftar dokumen." },
+      { title: "Kelola data sebagai bukti", body: "Setiap KPI memerlukan definisi, satuan, batas organisasi, pemilik data, frekuensi, sumber, dan jejak perubahan. Audit internal atau review dapat menguji apakah prosesnya benar-benar berjalan." },
+      { title: "Pisahkan tindakan korektif dari status", body: "Temuan audit, akar masalah, tindakan, pemilik, tenggat, dan verifikasi efektivitas adalah elemen berbeda. Menutup temuan tanpa uji efektivitas hanya memindahkan risiko ke periode berikutnya." },
+    ],
+    situation: { title: "Situasi kerja", body: "Laporan menyebut penurunan konsumsi air, tetapi tidak ada definisi KPI atau pemilik data. Bangun data card terlebih dahulu sebelum menjadikan angka sebagai disclosure eksternal." },
+    caution: "Standar pelaporan membantu struktur informasi, tetapi materialitas, kewajiban hukum, dan ruang lingkup laporan harus ditentukan sesuai konteks organisasi.",
+  },
+  markets: {
+    opening: "Carbon market baru dapat dibaca dengan benar setelah inventaris gross dan strategi pengurangan internal sudah jelas. Kredit karbon bukan pengganti angka emisi fisik.",
+    chapters: [
+      { title: "Pisahkan empat hal", body: "Bedakan emisi gross, rencana pengurangan internal, kepemilikan unit karbon, dan bahasa klaim. Keempatnya memiliki data, proses, dan risiko yang berbeda." },
+      { title: "Telusuri identitas unit", body: "Simpan proyek atau unit ID, vintage, registry, metode, status kepemilikan, serta bukti retirement. Ledger ini membantu mencegah unit diperlakukan sebagai angka pengurang inventaris tanpa dasar." },
+      { title: "Tinjau klaim setelah tindakan", body: "Klaim perlu menyesuaikan tujuan, pengurangan emisi, kualitas kredit, retirement, dan persyaratan komunikasi yang relevan. Kualitas kredit dan integritas klaim adalah dua pemeriksaan yang berbeda." },
+    ],
+    situation: { title: "Situasi kerja", body: "Tim membeli kredit untuk suatu acara. Catat emisi acara secara gross, simpan detail unit dan retirement, lalu tinjau apakah bahasa komunikasi yang direncanakan melampaui fakta yang dapat dibuktikan." },
+    caution: "Jangan menggunakan kredit, allowance, atau offset untuk menghapus angka inventaris gross di dashboard pembelajaran maupun laporan tanpa dasar metodologis yang jelas.",
+  },
+  proper: {
+    opening: "Kesiapan PROPER adalah pekerjaan keterlacakan lintas fungsi. Fokusnya bukan mengumpulkan checklist sebanyak mungkin, melainkan memastikan dokumen, data, pemilik, periode, dan verifikasi dapat ditelusuri.",
+    chapters: [
+      { title: "Mulai dari evidence register", body: "Buat register yang menautkan dokumen, domain, pemilik, periode, versi, lokasi, status verifikasi, dan tautan penyimpanan. Register membantu melihat kekosongan sebelum periode review mendekat." },
+      { title: "Hubungkan data lintas domain", body: "Energi, air, limbah, emisi, nature, dan SML perlu memakai periode serta batas yang dapat dijelaskan. Perbedaan yang sah harus didokumentasikan, bukan disembunyikan agar angka tampak konsisten." },
+      { title: "Konfirmasi ketentuan periode berjalan", body: "Kriteria, mekanisme, dokumen, passing grade, dan cut-off dapat berubah. Gunakan portal resmi KLH/BPLH sebagai titik konfirmasi sebelum membuat keputusan atau klaim kesiapan." },
+    ],
+    situation: { title: "Situasi kerja", body: "Tim memiliki banyak laporan, tetapi nama file dan versi tidak konsisten. Mulai dengan satu register, tetapkan pemilik dan status review, lalu prioritaskan dokumen yang terkait kriteria periode berjalan." },
+    caution: "EnvSusta tidak menilai atau menjamin peringkat PROPER. Penilaian formal mengikuti mekanisme, ketentuan, dan verifikasi yang ditetapkan KLH/BPLH pada periode terkait.",
+  },
+};
+
 export const sustainabilityActionTracks = [
   { domainId: "carbon" as DomainId, title: "Tetapkan periode dan batas baseline", copy: "Tentukan unit organisasi, lokasi, dan periode yang akan digunakan." },
   { domainId: "energy" as DomainId, title: "Kumpulkan energi dan pola operasi", copy: "Simpan kWh, bahan bakar, jam operasi, dan driver konsumsi." },
